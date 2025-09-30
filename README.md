@@ -8,3 +8,4 @@
 
 1. Node v20 (nvm), pnpm
 2. Salin `.env.example` → `.env`
+3. Migration DB `pnpm run migration:run`
