@@ -13,6 +13,7 @@ import { Document } from './entities/documents.entity';
 import { DocumentCategory } from './entities/document-categories.entity';
 import { DocumentVersion } from './entities/document-versions.entity';
 import { AuditLog } from './entities/audit-logs.entity';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AuditLog } from './entities/audit-logs.entity';
     }),
     CommonModule.forRoot(),
     HealthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [],

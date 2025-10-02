@@ -6,11 +6,11 @@ export class Menu {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 150 })
   name: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  path?: string;
+  @Column({ type: 'varchar', length: 150 })
+  slug: string;
 
   @ManyToMany(() => Menu, (menu) => menu.children, { nullable: true })
   @JoinColumn({ name: 'parent_id' })
