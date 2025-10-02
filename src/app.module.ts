@@ -18,7 +18,8 @@ import { HealthModule } from './health/health.module';
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
       synchronize: false, // ubah false pada production
-      entities: ['src/entity/**/*{.ts,.js}'],
+      entities: ['dist/entities/**/*{.js,.ts}', 'src/entities/**/*{.ts,.js}'],
+      autoLoadEntities: true,
     }),
     CommonModule.forRoot(),
     HealthModule,
