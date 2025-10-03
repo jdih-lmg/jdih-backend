@@ -136,7 +136,7 @@ Content-Type: application/json
 }
 ```
 
-Response 201 (200 dalam implementasi saat ini):
+Response 201:
 
 ```
 {
@@ -280,18 +280,3 @@ Error 404:
 ```
 
 ---
-
-### Catatan Tambahan
-
-- Field password hanya diterima di create & update; tidak pernah dikembalikan.
-- `roleId` optional di schema tetapi service akan error jika roleId diberikan dan tidak valid.
-- Nilai `updatedAt` bisa `null` jika belum pernah diubah.
-- Belum ada pagination; kalau nanti ditambah bisa menambah objek `meta`.
-- Middleware / guard auth belum diterapkan di contoh ini (endpoint masih terbuka kecuali Anda tambahkan guard sendiri).
-
-### Rekomendasi Peningkatan (Opsional)
-
-- Tambahkan pagination & filter (query ?page=&limit=)
-- Tambah soft delete (pakai kolom deletedAt + TypeORM soft remove)
-- Tambah guard JWT untuk proteksi endpoint
-- Tambah rate limit di endpoint create/delete
