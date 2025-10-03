@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  DeleteDateColumn,
+} from 'typeorm';
 import { Role } from './roles.entity';
 
 @Entity('users')
@@ -26,6 +34,7 @@ export class User {
   @Column({ name: 'updated_at', type: 'datetime', nullable: true, default: null })
   updatedAt?: Date;
 
-  @Column({ name: 'deleted_at', type: 'datetime', nullable: true, default: null })
-  deletedAt?: Date;
+  // Soft delete timestamp; baris dianggap terhapus bila kolom ini non-null
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
+  deletedAt?: Date | null;
 }

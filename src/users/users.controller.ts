@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Patch,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -30,6 +31,7 @@ export class UsersController {
         : null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      // tidak expose deletedAt kecuali endpoint khusus
     };
   }
 
@@ -89,16 +91,38 @@ export class UsersController {
 
   // Delete user by id
   @Delete(':id')
-  async delteUserController(@Param('id', ParseIntPipe) id: number) {
+  async deleteUserController(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.deleteUserService(id);
 
     return {
-      message: `Berhasil menghapus user id ${id}`,
+      message: `Berhasil menandai user id ${id} sebagai terhapus`,
       success: true,
       data: {
         name: user.name,
         email: user.email,
       },
+    };
+  }
+
+  // List user yang sudah soft deleted
+  @Get('deleted/list')
+  async getDeletedUsers() {
+    const users = await this.userService.getDeletedUsers();
+    return {
+      message: 'Berhasil mendapatkan user terhapus',
+      success: true,
+      data: users.map((u) => ({ id: u.id, name: u.name, email: u.email, deletedAt: u.deletedAt })),
+    };
+  }
+
+  // Restore user yang soft deleted
+  @Patch(':id/restore')
+  async restoreUser(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.userService.restoreUserService(id);
+    return {
+      message: `Berhasil merestore user id ${id}`,
+      success: true,
+      data: this.toUserResponse(user),
     };
   }
 }

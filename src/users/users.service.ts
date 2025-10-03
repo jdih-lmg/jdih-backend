@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ValidationService } from 'src/common/validation.service';
 import { Role } from 'src/entities/roles.entity';
 import { User } from 'src/entities/users.entity';
-import { Repository } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import { CreateUserDto, CreateUserSchema } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto, UpdateUserSchema } from './dto/update-user.dto';
@@ -18,6 +18,7 @@ export class UsersService {
 
   // Get all users
   async getAllUserService(): Promise<User[]> {
+    // Default: TypeORM otomatis exclude yang soft deleted
     return this.userRepo.find({ relations: ['role'] });
   }
 
@@ -85,9 +86,36 @@ export class UsersService {
   // Delete user by id
   async deleteUserService(id: number): Promise<User> {
     const user = await this.getUserByIdService(id);
-
-    await this.userRepo.remove(user);
-
+    // Jika sudah soft deleted sebelumnya
+    if (user.deletedAt) {
+      throw new BadRequestException(`User id ${id} sudah terhapus`);
+    }
+    await this.userRepo.softRemove(user); // set deletedAt
     return user;
+  }
+
+  // Ambil semua user yang sudah di-soft delete
+  async getDeletedUsers(): Promise<User[]> {
+    return this.userRepo.find({
+      withDeleted: true,
+      where: { deletedAt: Not(IsNull()) },
+      relations: ['role'],
+    });
+  }
+
+  // Mengembalikan user yang sudah soft deleted
+  async restoreUserService(id: number): Promise<User> {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      withDeleted: true,
+      relations: ['role'],
+    });
+    if (!user) throw new NotFoundException(`User dengan id ${id} tidak ditemukan`);
+    if (!user.deletedAt) {
+      throw new BadRequestException(`User id ${id} tidak dalam status terhapus`);
+    }
+    await this.userRepo.restore(id);
+    // fetch kembali untuk memastikan state
+    return this.getUserByIdService(id);
   }
 }

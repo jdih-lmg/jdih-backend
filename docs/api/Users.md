@@ -244,9 +244,9 @@ Error 404 (role baru tidak ditemukan):
 }
 ```
 
-### 5. DELETE /api/users/:id
+### 5. DELETE /api/users/:id (Soft Delete)
 
-Menghapus user (hard delete via repository.remove()).
+Menandai user sebagai terhapus (soft delete). Data tidak benar‑benar hilang dan bisa direstore.
 
 Request:
 
@@ -258,7 +258,7 @@ Response 200:
 
 ```
 {
-	"message": "Berhasil menghapus user id 3",
+	"message": "Berhasil menandai user id 3 sebagai terhapus",
 	"success": true,
 	"data": {
 		"name": "Operator",
@@ -267,14 +267,99 @@ Response 200:
 }
 ```
 
-Error 404:
+Error 400 (sudah terhapus):
 
 ```
 {
-	"message": "User dengan id 3 tidak ditemukan",
+	"message": "User id 3 sudah terhapus",
 	"success": false,
 	"data": null,
-		"path": "/api/users/3",
+	"path": "/api/users/3",
+	"timestamp": "..."
+}
+```
+
+Error 404 (tidak ada user):
+
+```
+{
+	"message": "User dengan id 999 tidak ditemukan",
+	"success": false,
+	"data": null,
+	"path": "/api/users/999",
+	"timestamp": "..."
+}
+```
+
+### 6. GET /api/users/deleted/list
+
+Mengambil daftar user yang sudah di-soft delete.
+
+Request:
+
+```
+GET /api/users/deleted/list
+```
+
+Response 200:
+
+```
+{
+	"message": "Berhasil mendapatkan user terhapus",
+	"success": true,
+	"data": [
+		{ "id": 3, "name": "Operator", "email": "operator@jdih.com", "deletedAt": "2025-10-03T10:00:01.000Z" }
+	]
+}
+```
+
+### 7. PATCH /api/users/:id/restore
+
+Merestore user yang telah di-soft delete.
+
+Request:
+
+```
+PATCH /api/users/3/restore
+```
+
+Response 200:
+
+```
+{
+	"message": "Berhasil merestore user id 3",
+	"success": true,
+	"data": {
+		"id": 3,
+		"name": "Operator",
+		"email": "operator@jdih.com",
+		"role": { "id": 1, "name": "admin", "description": "Administrator" },
+		"createdAt": "2025-10-01T07:13:02.000Z",
+		"updatedAt": "2025-10-03T10:02:11.000Z"
+	}
+}
+```
+
+Error 404 (tidak ditemukan):
+
+```
+{
+	"message": "User dengan id 999 tidak ditemukan",
+	"success": false,
+	"data": null,
+	"path": "/api/users/999/restore",
+	"timestamp": "..."
+}
+```
+
+Error 400 (user belum terhapus):
+
+```
+{
+	"message": "User id 3 tidak dalam status terhapus",
+	"success": false,
+	"data": null,
+	"path": "/api/users/3/restore",
 	"timestamp": "..."
 }
 ```
