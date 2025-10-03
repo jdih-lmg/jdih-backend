@@ -266,10 +266,10 @@ BEGIN;
 
 INSERT INTO `users`(`id`,`name`,`email`,`password_hash`,`role_id`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
 ( '1', 'Admin', 'admin@jdih.com', '$2b$10$A3B07LTSg7lyZiEgbt8WJe2o8WsLa/Lb/iis2.L6QfbEXeC4hL8JC', '1', '2025-09-30 14:13:02.000000', NULL, NULL, NULL, NULL, NULL ),
-( '2', 'User Satu', 'user1@example.com', '$2b$10$YHqhWbalkvCPQ5YDlzd/J.l3GtOUJjAWECBsVuYge0gBR1CG9apKS', '2', '2025-10-03 03:11:45.087520', NULL, NULL, NULL, NULL, NULL ),
-( '3', 'User Dua', 'user2@example.com', '$2b$10$GcYIdJ88PmYdcKwEQDPrHO.I3qErgCdackcBS3OPE1ouWGo48ZHyS', '2', '2025-10-03 03:12:32.197942', NULL, NULL, NULL, NULL, NULL ),
-( '4', 'User Tujuh', 'user7@example.com', '$2b$10$1LJaPUYH0sYjnUTr6SxrJeRH0BmnuZ2n/cE1ZyEI8wHjs8.evJw82', '2', '2025-10-03 03:12:44.935678', NULL, NULL, NULL, NULL, NULL ),
-( '5', 'User Empat', 'user4@example.com', '$2b$10$mqWfR21BOiz/XrCFMiW6/eawij8pkvanp4/8TehdjBeITxjRvxrbq', '2', '2025-10-03 03:12:54.652209', NULL, NULL, NULL, NULL, NULL );
+( '9', 'User Satu', 'user1@example.com', '$2b$10$8YqHGZiLUx8ujRRT.YmLDO4PLaSQQokZUCiFTW8wau2doZoueHAEy', '2', '2025-10-03 08:53:26.035119', NULL, NULL, NULL, NULL, NULL ),
+( '11', 'User Dua', 'user2@example.com', '$2b$10$EQ.OAHQfZmD4suUOT28iee4ZC.fz8NuXH2eg8XSRrk5qQYClpJGCO', '2', '2025-10-03 08:53:40.538323', NULL, NULL, NULL, NULL, NULL ),
+( '12', 'User Tiga', 'user3@example.com', '$2b$10$3rwPsVsWyMTE4hhWAgRdU.UvcaBaqMtO2KPSvGP.oITiKwfQfMgKO', '2', '2025-10-03 08:53:53.452457', NULL, NULL, NULL, NULL, NULL ),
+( '15', 'Test User', 'test@example.com', '$2b$10$fm8Ing9tJ8mgb.lrsZQwPeAoXfOmwOB29YXL2drJf.AsTYimF17qW', '2', '2025-10-03 09:12:39.839020', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 

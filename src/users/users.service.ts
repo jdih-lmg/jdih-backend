@@ -64,11 +64,20 @@ export class UsersService {
 
     if (dto.name) user.name = dto.name;
     if (dto.email) user.email = dto.email;
-    if (dto.password)
-      user.passwordHash = await bcrypt.hash(
-        dto.password,
-        Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
-      );
+    // cek apakah password perlu di-hash ulang
+    if (dto.password) {
+      const incoming = dto.password;
+      const looksLikeBcrypt = incoming.length === 60 && incoming.startsWith('$2');
+      if (!looksLikeBcrypt) {
+        const sameAsOld = await bcrypt.compare(incoming, user.passwordHash).catch(() => false);
+        if (!sameAsOld) {
+          user.passwordHash = await bcrypt.hash(
+            incoming,
+            Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
+          );
+        }
+      }
+    }
 
     return this.userRepo.save(user);
   }
