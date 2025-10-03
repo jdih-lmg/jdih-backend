@@ -6,7 +6,7 @@ export const UpdateUserSchema = z.object({
     .min(3, 'Username minimal 3 karakter')
     .max(30, 'Username maksimal 30 karakter')
     .optional(),
-  email: z.string().email('Email tidak valid').optional(),
+  email: z.email('Email tidak valid').optional(),
   password: z
     .string()
     .min(8, 'Password minimal 8 karakter')

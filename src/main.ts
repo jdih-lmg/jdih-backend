@@ -7,6 +7,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(helmet());
   app.enableCors();
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api');
 
   // Register global error filter sederhana
   app.useGlobalFilters(new AllExceptionFilter());
