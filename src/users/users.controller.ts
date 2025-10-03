@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
@@ -53,6 +64,7 @@ export class UsersController {
 
   // Create user
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async createUserController(@Body() dto: CreateUserDto) {
     const user = await this.userService.createUserService(dto);
 
