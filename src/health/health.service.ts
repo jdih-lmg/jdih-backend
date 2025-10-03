@@ -1,11 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
+export interface HealthStatus {
+  status: 'ok' | 'degraded';
+  uptime: number;
+  timestamp: string;
+  checks: {
+    database: 'up' | 'down' | 'unknown';
+  };
+}
+
 @Injectable()
 export class HealthService {
   constructor(private readonly dataSource: DataSource) {}
 
-  async check() {
+  async check(): Promise<HealthStatus> {
     const db = {
       status: 'unknown' as 'up' | 'down' | 'unknown',
     };
@@ -17,7 +26,7 @@ export class HealthService {
       db.status = 'down';
     }
 
-    return {
+    const result: HealthStatus = {
       status: db.status === 'up' ? 'ok' : 'degraded',
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
@@ -25,5 +34,6 @@ export class HealthService {
         database: db.status,
       },
     };
+    return result;
   }
 }
