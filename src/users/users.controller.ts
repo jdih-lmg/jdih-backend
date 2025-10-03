@@ -78,12 +78,15 @@ export class UsersController {
   // Delete user by id
   @Delete(':id')
   async delteUserController(@Param('id', ParseIntPipe) id: number) {
-    await this.userService.deleteUserService(id);
+    const user = await this.userService.deleteUserService(id);
 
     return {
       message: `Berhasil menghapus user id ${id}`,
       success: true,
-      data: null,
+      data: {
+        name: user.name,
+        email: user.email,
+      },
     };
   }
 }
