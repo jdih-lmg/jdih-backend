@@ -15,6 +15,7 @@ import { DocumentVersion } from './entities/document-versions.entity';
 import { AuditLog } from './entities/audit-logs.entity';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AuthModule } from './auth/auth.module';
     HealthModule,
     UsersModule,
     AuthModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [],
