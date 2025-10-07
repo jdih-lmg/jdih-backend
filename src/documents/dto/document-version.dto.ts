@@ -7,6 +7,5 @@ export const CreateDocumentVersionSchema = z.object({
   notes: z.string().max(2000).optional(),
 });
 export type CreateDocumentVersionDto = z.infer<typeof CreateDocumentVersionSchema>;
-
 export const UpdateDocumentVersionSchema = CreateDocumentVersionSchema.partial();
 export type UpdateDocumentVersionDto = z.infer<typeof UpdateDocumentVersionSchema>;

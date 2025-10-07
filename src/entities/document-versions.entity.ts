@@ -2,13 +2,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { Document } from './documents.entity';
 
 @Entity('document_versions')
 export class DocumentVersion {
@@ -17,10 +14,6 @@ export class DocumentVersion {
 
   @Column({ name: 'document_id', type: 'bigint', unsigned: true })
   documentId: number;
-
-  @ManyToOne(() => Document, (doc) => doc.versions, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'document_id' })
-  document: Document;
 
   @Column({ name: 'version_number', type: 'int' })
   versionNumber: number;

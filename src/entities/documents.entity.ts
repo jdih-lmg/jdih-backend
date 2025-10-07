@@ -2,14 +2,12 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToMany,
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { DocumentVersion } from './document-versions.entity';
 import { DocumentCategory } from './document-categories.entity';
 import { User } from './users.entity';
 
@@ -72,12 +70,10 @@ export class Document {
   @Column({ name: 'verification_date', type: 'datetime', nullable: true })
   verificationDate?: Date | null;
 
-  @Column({ name: 'verified_by', type: 'bigint', unsigned: true, nullable: true })
-  verifiedBy?: number | null;
-
+  // Single relation field (remove separate numeric + relation duplication)
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'verified_by' })
-  verifiedByUser?: User | null;
+  verifiedBy?: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
   createdAt: Date;
@@ -96,7 +92,4 @@ export class Document {
 
   @Column({ name: 'deleted_by', type: 'bigint', unsigned: true, nullable: true })
   deletedBy?: number | null;
-
-  @OneToMany(() => DocumentVersion, (v) => v.document)
-  versions: DocumentVersion[];
 }
