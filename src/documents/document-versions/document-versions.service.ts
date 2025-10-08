@@ -27,23 +27,30 @@ export class DocumentVersionsService {
   // get all document versions by document id
   async getAllDocumentVersionsByDocumentIdService(documentId: number): Promise<DocumentVersion[]> {
     const doc = await this.documentRepo.findOne({ where: { id: documentId } });
+
     if (!doc) throw new NotFoundException(`Dokumen dengan id ${documentId} tidak ditemukan`);
+
     return this.versionRepo.find({ where: { documentId }, order: { versionNumber: 'DESC' } });
   }
 
   // get document version by id
   async getDocumentVersionByIdService(id: number): Promise<DocumentVersion> {
     const version = await this.versionRepo.findOne({ where: { id } });
+
     if (!version) throw new NotFoundException(`Versi dokumen dengan id ${id} tidak ditemukan`);
+
     return version;
   }
 
   // create document version
   async createDocumentVersionService(data: CreateDocumentVersionDto): Promise<DocumentVersion> {
     const doc = await this.documentRepo.findOne({ where: { id: data.documentId } });
+
     if (!doc) throw new NotFoundException(`Dokumen dengan id ${data.documentId} tidak ditemukan`);
+
     const dto = this.validation.validate(CreateDocumentVersionSchema, data);
     const version = this.versionRepo.create(dto);
+
     return this.versionRepo.save(version);
   }
 
@@ -54,13 +61,16 @@ export class DocumentVersionsService {
   ): Promise<DocumentVersion> {
     const dto = this.validation.validate(UpdateDocumentVersionSchema, data);
     const version = await this.getDocumentVersionByIdService(id);
+
     Object.assign(version, dto);
+
     return this.versionRepo.save(version);
   }
 
   // soft delete document version by id
   async deleteDocumentVersionByIdService(id: number): Promise<DocumentVersion> {
     const version = await this.getDocumentVersionByIdService(id);
+
     return this.versionRepo.softRemove(version);
   }
 
@@ -79,13 +89,16 @@ export class DocumentVersionsService {
       withDeleted: true,
       where: { id, deletedAt: Not(IsNull()) },
     });
+
     if (!version)
       throw new NotFoundException(
         `Versi dokumen dengan id ${id} tidak ditemukan atau belum dihapus`,
       );
     if (!version.deletedAt)
       throw new NotFoundException(`Versi dokumen dengan id ${id} belum dihapus`);
+
     await this.versionRepo.restore(id);
+
     return this.getDocumentVersionByIdService(id);
   }
 }

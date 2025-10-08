@@ -51,6 +51,7 @@ export class DocumentVersionsController {
   @Get('document-versions/:id')
   async getDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.getDocumentVersionByIdService(id);
+
     return {
       message: `Berhasil mendapatkan versi dokumen dengan id ${id}`,
       success: true,
@@ -58,11 +59,12 @@ export class DocumentVersionsController {
     };
   }
 
-  // create version for a document (documentId di dalam body)
+  // create version untuk document (documentId di dalam body)
   @Post('document-versions')
   @HttpCode(HttpStatus.CREATED)
   async createDocumentVersionController(@Body() dto: CreateDocumentVersionDto) {
     const version = await this.versionsService.createDocumentVersionService(dto);
+
     return {
       message: 'Versi dokumen berhasil dibuat',
       success: true,
@@ -70,7 +72,7 @@ export class DocumentVersionsController {
     };
   }
 
-  // alternative: create under a specific document path (inject documentId)
+  // alternatif: create spesifik di bawah document (inject documentId)
   @Post('documents/:documentId/versions')
   @HttpCode(HttpStatus.CREATED)
   async createDocumentVersionUnderDocumentController(
@@ -81,6 +83,7 @@ export class DocumentVersionsController {
       ...dto,
       documentId,
     } as CreateDocumentVersionDto);
+
     return {
       message: `Versi dokumen untuk dokumen ${documentId} berhasil dibuat`,
       success: true,
@@ -95,6 +98,7 @@ export class DocumentVersionsController {
     @Body() dto: UpdateDocumentVersionDto,
   ) {
     const version = await this.versionsService.updateDocumentVersionService(id, dto);
+
     return {
       message: `Versi dokumen dengan id ${id} berhasil diupdate`,
       success: true,
@@ -106,6 +110,7 @@ export class DocumentVersionsController {
   @Delete('document-versions/:id')
   async deleteDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.deleteDocumentVersionByIdService(id);
+
     return {
       message: `Versi dokumen dengan id ${id} berhasil dihapus`,
       success: true,
@@ -117,6 +122,7 @@ export class DocumentVersionsController {
   @Get('document-versions/deleted/list')
   async getAllDeletedDocumentVersionsController() {
     const deleted = await this.versionsService.getAllDeletedDocumentVersionsService();
+
     return {
       message: 'Berhasil mendapatkan semua versi dokumen yang dihapus',
       success: true,
@@ -128,6 +134,7 @@ export class DocumentVersionsController {
   @Put('document-versions/restore/:id')
   async restoreDeletedDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.restoreDeletedDocumentVersionByIdService(id);
+
     return {
       message: `Versi dokumen dengan id ${id} berhasil dikembalikan`,
       success: true,

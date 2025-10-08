@@ -1,7 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-// src/entity/role-menu-permissions.entity.ts
-import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
-import { Role } from './roles.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Menu } from './menus.entity';
 import { Action } from './actions.entity';
 
@@ -10,18 +16,41 @@ export class RoleMenuPermission {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
-  @ManyToOne(() => Role, (role) => role.permissions)
-  @JoinColumn({ name: 'role_id' })
-  role: Role;
+  @Column({ name: 'role_id', type: 'bigint', unsigned: true })
+  roleId: number; // expect from JWT: user.roleId
 
-  @ManyToOne(() => Menu, (menu) => menu.permissions)
+  @Column({ name: 'menu_id', type: 'bigint', unsigned: true })
+  menuId: number;
+
+  @ManyToOne(() => Menu, { nullable: false })
   @JoinColumn({ name: 'menu_id' })
   menu: Menu;
 
-  @ManyToOne(() => Action, (action) => action.permissions)
+  @Column({ name: 'action_id', type: 'bigint', unsigned: true })
+  actionId: number;
+
+  @ManyToOne(() => Action, { nullable: false })
   @JoinColumn({ name: 'action_id' })
   action: Action;
 
-  @Column({ name: 'is_allowed', type: 'tinyint', default: 1 })
+  @Column({ name: 'is_allowed', type: 'tinyint', width: 1, default: 1 })
   isAllowed: boolean;
+
+  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
+  createdAt: Date;
+
+  @Column({ name: 'created_by', type: 'bigint', unsigned: true, nullable: true })
+  createdBy?: number | null;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime', nullable: true })
+  updatedAt?: Date | null;
+
+  @Column({ name: 'updated_by', type: 'bigint', unsigned: true, nullable: true })
+  updatedBy?: number | null;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
+  deletedAt?: Date | null;
+
+  @Column({ name: 'deleted_by', type: 'bigint', unsigned: true, nullable: true })
+  deletedBy?: number | null;
 }

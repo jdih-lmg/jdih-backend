@@ -42,8 +42,7 @@ CREATE TABLE `audit_logs`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB
-AUTO_INCREMENT = 1;
+ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
@@ -61,7 +60,8 @@ CREATE TABLE `document_categories`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
+ENGINE = InnoDB
+AUTO_INCREMENT = 3;
 -- -------------------------------------------------------------
 
 
@@ -82,7 +82,7 @@ CREATE TABLE `document_versions`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 1;
+AUTO_INCREMENT = 2;
 -- -------------------------------------------------------------
 
 
@@ -115,7 +115,7 @@ CREATE TABLE `documents`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 1;
+AUTO_INCREMENT = 6;
 -- -------------------------------------------------------------
 
 
@@ -167,8 +167,7 @@ CREATE TABLE `role_menu_permissions`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB
-AUTO_INCREMENT = 1;
+ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
@@ -187,7 +186,7 @@ CREATE TABLE `roles`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 3;
+AUTO_INCREMENT = 2;
 -- -------------------------------------------------------------
 
 
@@ -209,11 +208,19 @@ CREATE TABLE `users`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 8;
+AUTO_INCREMENT = 15;
 -- -------------------------------------------------------------
 
 
 -- Dump data of "actions" ----------------------------------
+BEGIN;
+
+INSERT INTO `actions`(`id`,`name`,`description`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
+( '1', 'view', 'Read records', '2025-10-08 06:17:38.140720', NULL, NULL, NULL, NULL, NULL ),
+( '2', 'create', 'Create record', '2025-10-08 06:17:38.140720', NULL, NULL, NULL, NULL, NULL ),
+( '3', 'update', 'Update record', '2025-10-08 06:17:38.140720', NULL, NULL, NULL, NULL, NULL ),
+( '4', 'delete', 'Delete record', '2025-10-08 06:17:38.140720', NULL, NULL, NULL, NULL, NULL );
+COMMIT;
 -- ---------------------------------------------------------
 
 
@@ -222,18 +229,48 @@ AUTO_INCREMENT = 8;
 
 
 -- Dump data of "document_categories" ----------------------
+BEGIN;
+
+INSERT INTO `document_categories`(`id`,`name`,`description`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
+( '1', 'Peraturan Daerah', 'Kategori untuk Perda dan turunannya', '2025-10-07 08:00:14.163062', NULL, NULL, NULL, NULL, NULL ),
+( '2', 'Peraturan Bupati', 'Kategori untuk Perbup dan turunannya', '2025-10-07 08:00:50.217063', NULL, NULL, NULL, NULL, NULL ),
+( '3', 'Test Category Edit', 'Testing kategori Edit', '2025-10-08 05:55:10.563214', NULL, '2025-10-08 05:56:58.000000', NULL, NULL, NULL ),
+( '4', 'Test', 'Testing Cat', '2025-10-08 05:57:36.756715', NULL, '2025-10-08 06:00:16.000000', NULL, NULL, NULL );
+COMMIT;
 -- ---------------------------------------------------------
 
 
 -- Dump data of "document_versions" ------------------------
+BEGIN;
+
+INSERT INTO `document_versions`(`id`,`document_id`,`version_number`,`file_url`,`notes`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
+( '1', '4', '2', 'https://contoh.example.pdf', 'versi awal amandemen', '2025-10-07 05:18:43.489573', NULL, NULL, NULL, NULL, NULL ),
+( '2', '4', '4', 'https://contoh.example.pdf', 'perubahan pasal 5', '2025-10-07 07:56:39.583100', NULL, NULL, NULL, NULL, NULL );
+COMMIT;
 -- ---------------------------------------------------------
 
 
 -- Dump data of "documents" --------------------------------
+BEGIN;
+
+INSERT INTO `documents`(`id`,`title`,`number`,`type`,`year`,`subject`,`abstract`,`keywords`,`status`,`category_id`,`publisher`,`signed_by`,`date_signed`,`effective_date`,`file_url`,`verification_date`,`verified_by`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
+( '3', 'Peraturan Bupati No. 1 Tahun 2025', '1', 'Peraturan Bupati', '2025', 'Pengelolaan Sampah', 'Peraturan ini mengatur tentang pengelolaan sampah di wilayah Kabupaten Edited.', 'sampah, lingkungan, kebersihan', 'draft', NULL, 'Bagian Hukum', 'Bupati', '2025-01-15', '2025-02-01', 'https://example.com/files/perbup-1-2025.pdf', '2025-01-20 17:00:00.000000', '1', '2025-10-07 03:11:06.302179', NULL, '2025-10-07 03:19:55.000000', NULL, '2025-10-07 03:19:55.000000', NULL ),
+( '4', 'Peraturan Bupati No. 1 Tahun 2025', '1', 'Peraturan Bupati', '2025', 'Pengelolaan Sampah Edited', 'Peraturan ini mengatur tentang pengelolaan sampah di wilayah Kabupaten Edited.', 'sampah, lingkungan, kebersihan', 'draft', NULL, 'Bagian Hukum', 'Bupati', '2025-01-15', '2025-02-01', 'https://example.com/files/perbup-1-2025.pdf', '2025-01-20 17:00:00.000000', '1', '2025-10-07 03:25:25.017494', NULL, '2025-10-07 03:27:02.000000', NULL, NULL, NULL ),
+( '5', 'Peraturan Bupati No. 23 Tahun 2025', '2', 'Peraturan Bupati', '2025', 'Pajak Restaurant', 'Peraturan ini mengatur tentang pajak restaurant di Kabupaten.', 'restaurant, pajak, makanan', 'draft', NULL, 'Bagian Hukum', 'Bupati', '2025-01-15', '2025-02-01', 'https://example.com/files/perbup-2-2025.pdf', '2025-09-20 07:00:00.000000', '9', '2025-10-07 06:20:50.073744', NULL, '2025-10-07 06:49:31.000000', NULL, NULL, NULL ),
+( '6', 'PerBup No. 17 Tahun 2025', '3', 'Peraturan Bupati', '2025', 'Pajak Tanah Edited', 'Peraturan ini mengatur tentang pajak tanah di Kabupaten.', 'restaurant, pajak, makanan', 'draft', NULL, 'Bagian Hukum', 'Bupati', '2025-01-20', '2025-02-01', 'https://example.com/files/perbup-2-2025.pdf', '2025-01-21 07:00:00.000000', '9', '2025-10-07 06:23:54.979766', NULL, '2025-10-07 06:32:40.000000', NULL, NULL, NULL );
+COMMIT;
 -- ---------------------------------------------------------
 
 
 -- Dump data of "menus" ------------------------------------
+BEGIN;
+
+INSERT INTO `menus`(`id`,`name`,`slug`,`parent_id`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
+( '1', 'Documents', 'documents', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL ),
+( '2', 'Document Categories', 'document-categories', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL ),
+( '3', 'Document Versions', 'document-versions', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL ),
+( '4', 'Users', 'users', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL );
+COMMIT;
 -- ---------------------------------------------------------
 
 
@@ -248,6 +285,26 @@ COMMIT;
 
 
 -- Dump data of "role_menu_permissions" --------------------
+BEGIN;
+
+INSERT INTO `role_menu_permissions`(`id`,`role_id`,`menu_id`,`action_id`,`is_allowed`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
+( '1', '1', '3', '1', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '2', '1', '2', '1', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '3', '1', '1', '1', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '4', '1', '3', '2', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '5', '1', '2', '2', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '6', '1', '1', '2', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '7', '1', '3', '3', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '8', '1', '2', '3', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '9', '1', '1', '3', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '10', '1', '3', '4', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '11', '1', '2', '4', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '12', '1', '1', '4', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
+( '16', '2', '1', '1', '1', '2025-10-08 06:20:41.952393', NULL, NULL, NULL, NULL, NULL ),
+( '17', '2', '1', '2', '0', '2025-10-08 06:20:41.952393', NULL, NULL, NULL, NULL, NULL ),
+( '18', '2', '1', '3', '0', '2025-10-08 06:20:41.952393', NULL, NULL, NULL, NULL, NULL ),
+( '19', '2', '1', '4', '0', '2025-10-08 06:20:41.952393', NULL, NULL, NULL, NULL, NULL );
+COMMIT;
 -- ---------------------------------------------------------
 
 
