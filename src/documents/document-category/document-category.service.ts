@@ -68,8 +68,8 @@ export class DocumentCategoryService {
   async getAllDeletedDocumentCategoriesService(): Promise<DocumentCategory[]> {
     return this.categoryRepo.find({
       withDeleted: true,
-      where: { deletedAt: Not(IsNull()) },
-      order: { deletedAt: 'DESC' },
+      where: { deleted_at: Not(IsNull()) },
+      order: { deleted_at: 'DESC' },
     });
   }
 
@@ -81,7 +81,7 @@ export class DocumentCategoryService {
     });
 
     if (!category) throw new Error(`Kategori dokumen dengan id ${id} tidak ditemukan`);
-    if (!category.deletedAt)
+    if (!category.deleted_at)
       throw new Error(`Kategori dokumen dengan id ${id} tidak dalam keadaan terhapus`);
 
     await this.categoryRepo.restore(id);

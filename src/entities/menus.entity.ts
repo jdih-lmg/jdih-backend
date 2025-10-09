@@ -4,11 +4,12 @@ import {
   Column,
   ManyToOne,
   OneToMany,
-  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  JoinColumn,
 } from 'typeorm';
+import { RoleMenuPermission } from './role-menu-permissions.entity';
 
 @Entity('menus')
 export class Menu {
@@ -19,33 +20,33 @@ export class Menu {
   name: string;
 
   @Column({ length: 150 })
-  slug: string; // should align with route segment, e.g. "documents"
+  slug: string;
 
-  @Column({ name: 'parent_id', type: 'bigint', unsigned: true, nullable: true })
-  parentId?: number | null;
-
-  @ManyToOne(() => Menu, (m) => m.children, { nullable: true })
+  @ManyToOne(() => Menu, (menu) => menu.children, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'parent_id' })
-  parent?: Menu | null;
+  parent?: Menu;
 
-  @OneToMany(() => Menu, (m) => m.parent)
+  @OneToMany(() => Menu, (menu) => menu.parent)
   children: Menu[];
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'datetime', precision: 6 })
+  created_at: Date;
 
-  @Column({ name: 'created_by', type: 'bigint', unsigned: true, nullable: true })
-  createdBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  created_by?: number;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'datetime', nullable: true })
-  updatedAt?: Date | null;
+  @UpdateDateColumn({ type: 'datetime', nullable: true })
+  updated_at?: Date;
 
-  @Column({ name: 'updated_by', type: 'bigint', unsigned: true, nullable: true })
-  updatedBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  updated_by?: number;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
-  deletedAt?: Date | null;
+  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  deleted_at?: Date;
 
-  @Column({ name: 'deleted_by', type: 'bigint', unsigned: true, nullable: true })
-  deletedBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  deleted_by?: number;
+
+  @OneToMany(() => RoleMenuPermission, (rmp) => rmp.menu)
+  permissions: RoleMenuPermission[];
 }

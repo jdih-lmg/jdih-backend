@@ -43,7 +43,7 @@ export class UsersService {
     const user = this.userRepo.create({
       name: dto.name,
       email: dto.email,
-      passwordHash: pwHashed,
+      password_hash: pwHashed,
       role: role,
     });
 
@@ -70,9 +70,9 @@ export class UsersService {
       const incoming = dto.password;
       const looksLikeBcrypt = incoming.length === 60 && incoming.startsWith('$2');
       if (!looksLikeBcrypt) {
-        const sameAsOld = await bcrypt.compare(incoming, user.passwordHash).catch(() => false);
+        const sameAsOld = await bcrypt.compare(incoming, user.password_hash).catch(() => false);
         if (!sameAsOld) {
-          user.passwordHash = await bcrypt.hash(
+          user.password_hash = await bcrypt.hash(
             incoming,
             Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
           );
@@ -86,11 +86,9 @@ export class UsersService {
   // Delete user by id
   async deleteUserService(id: number): Promise<User> {
     const user = await this.getUserByIdService(id);
-    // Jika sudah soft deleted sebelumnya
-    if (user.deletedAt) {
-      throw new BadRequestException(`User id ${id} sudah terhapus`);
-    }
-    await this.userRepo.softRemove(user); // set deletedAt
+
+    await this.userRepo.softRemove(user);
+
     return user;
   }
 
@@ -98,7 +96,7 @@ export class UsersService {
   async getDeletedUsers(): Promise<User[]> {
     return this.userRepo.find({
       withDeleted: true,
-      where: { deletedAt: Not(IsNull()) },
+      where: { deleted_at: Not(IsNull()) },
       relations: ['role'],
     });
   }
@@ -110,12 +108,14 @@ export class UsersService {
       withDeleted: true,
       relations: ['role'],
     });
+
     if (!user) throw new NotFoundException(`User dengan id ${id} tidak ditemukan`);
-    if (!user.deletedAt) {
+    if (!user.deleted_at) {
       throw new BadRequestException(`User id ${id} tidak dalam status terhapus`);
     }
+
     await this.userRepo.restore(id);
-    // fetch kembali untuk memastikan state
+
     return this.getUserByIdService(id);
   }
 }

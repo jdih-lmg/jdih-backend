@@ -1,14 +1,14 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
   Post,
+  Body,
   Put,
+  Delete,
   ParseIntPipe,
+  HttpStatus,
+  HttpCode,
   Patch,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
@@ -16,114 +16,93 @@ import type { CreateDocumentDto, UpdateDocumentDto } from './dto/document.dto';
 
 @Controller('documents')
 export class DocumentsController {
-  constructor(private readonly documentService: DocumentsService) {}
+  constructor(private readonly documentsService: DocumentsService) {}
 
   // get all documents
   @Get()
   async getAllDocumentsController() {
-    const documents = await this.documentService.getAllDocumentsService();
-
-    // custom verifiedBy to only return id, name, and email
-    documents.map((doc) => {
-      if (doc.verifiedBy) {
-        doc.verifiedBy = {
-          id: doc.verifiedBy.id,
-          name: doc.verifiedBy.name,
-          email: doc.verifiedBy.email,
-        } as unknown as typeof doc.verifiedBy;
-      }
-      return doc;
-    });
+    const docs = await this.documentsService.getAllDocumentsService();
 
     return {
       message: 'Berhasil mendapatkan semua dokumen',
       success: true,
-      data: documents,
+      data: docs,
     };
   }
 
   // get document by id
   @Get(':id')
   async getDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
-    const document = await this.documentService.getDocumentByIdService(id);
-
-    // custom verifiedBy to only return id, name, and email
-    if (document && document.verifiedBy) {
-      document.verifiedBy = {
-        id: document.verifiedBy.id,
-        name: document.verifiedBy.name,
-        email: document.verifiedBy.email,
-      } as unknown as typeof document.verifiedBy;
-    }
+    const doc = await this.documentsService.getDocumentByIdService(id);
 
     return {
       message: `Berhasil mendapatkan dokumen dengan id ${id}`,
       success: true,
-      data: document,
+      data: doc,
     };
   }
 
   // create document
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createDocumentController(@Body() dto: CreateDocumentDto) {
-    const document = await this.documentService.createDocumentService(dto);
+  async createDocumentConroller(@Body() body: CreateDocumentDto) {
+    const doc = await this.documentsService.createDocumentService(body);
 
     return {
-      message: 'Dokumen berhasil dibuat',
+      message: 'Berhasil membuat dokumen baru',
       success: true,
-      data: document,
+      data: doc,
     };
   }
 
   // update document by id
   @Put(':id')
-  async updateDocumentController(
+  async updateDocumentByIdController(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateDocumentDto,
+    @Body() body: UpdateDocumentDto,
   ) {
-    const document = await this.documentService.updateDocumentService(id, dto);
+    const doc = await this.documentsService.updateDocumentByIdService(id, body);
 
     return {
-      message: `Dokumen dengan id ${id} berhasil diupdate`,
+      message: `Berhasil memperbarui dokumen dengan id ${id}`,
       success: true,
-      data: document,
+      data: doc,
     };
   }
 
-  // soft delete document by id
+  // delete document by id
   @Delete(':id')
   async deleteDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
-    const document = await this.documentService.deleteDocumentByIdService(id);
+    const doc = await this.documentsService.deleteDocumentByIdService(id);
 
     return {
-      message: `Dokumen dengan id ${id} berhasil dihapus`,
+      message: `Berhasil menghapus dokumen dengan id ${id}`,
       success: true,
-      data: document,
+      data: doc,
     };
   }
 
   // get all deleted documents
   @Get('deleted/list')
-  async getAllDeletedDocumentsController() {
-    const docDeleted = await this.documentService.getAllDeletedDocumentsService();
+  async getlAllDeletedDocumentsController() {
+    const docs = await this.documentsService.getAllDeletedDocumentsService();
 
     return {
-      message: 'Berhasil mendapatkan semua dokumen yang dihapus',
+      message: 'Berhasil mendapatkan semua dokumen yang terhapus',
       success: true,
-      data: docDeleted,
+      data: docs,
     };
   }
 
   // restore deleted document by id
   @Patch('restore/:id')
   async restoreDeletedDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
-    const document = await this.documentService.restoreDeletedDocumentByIdService(id);
+    const doc = await this.documentsService.restoreDeletedDocumentByIdService(id);
 
     return {
-      message: `Dokumen dengan id ${id} berhasil dikembalikan`,
+      message: `Berhasil mengembalikan dokumen dengan id ${id}`,
       success: true,
-      data: document,
+      data: doc,
     };
   }
 }
