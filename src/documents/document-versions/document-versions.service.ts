@@ -21,7 +21,10 @@ export class DocumentVersionsService {
 
   // get all document versions
   async getAllDocumentVersionsService(): Promise<DocumentVersion[]> {
-    return this.versionRepo.find({ order: { versionNumber: 'DESC' } });
+    return this.versionRepo.find({
+      relations: ['document'],
+      order: { created_at: 'DESC' },
+    });
   }
 
   // get all document versions by document id
@@ -30,7 +33,11 @@ export class DocumentVersionsService {
 
     if (!doc) throw new NotFoundException(`Dokumen dengan id ${documentId} tidak ditemukan`);
 
-    return this.versionRepo.find({ where: { documentId }, order: { versionNumber: 'DESC' } });
+    return this.versionRepo.find({
+      where: { document: { id: documentId } },
+      relations: ['document'],
+      order: { created_at: 'DESC' },
+    });
   }
 
   // get document version by id
@@ -78,8 +85,8 @@ export class DocumentVersionsService {
   async getAllDeletedDocumentVersionsService(): Promise<DocumentVersion[]> {
     return this.versionRepo.find({
       withDeleted: true,
-      where: { deletedAt: Not(IsNull()) },
-      order: { versionNumber: 'DESC' },
+      where: { deleted_at: Not(IsNull()) },
+      order: { version_number: 'DESC' },
     });
   }
 
@@ -87,14 +94,14 @@ export class DocumentVersionsService {
   async restoreDeletedDocumentVersionByIdService(id: number): Promise<DocumentVersion> {
     const version = await this.versionRepo.findOne({
       withDeleted: true,
-      where: { id, deletedAt: Not(IsNull()) },
+      where: { id, deleted_at: Not(IsNull()) },
     });
 
     if (!version)
       throw new NotFoundException(
         `Versi dokumen dengan id ${id} tidak ditemukan atau belum dihapus`,
       );
-    if (!version.deletedAt)
+    if (!version.deleted_at)
       throw new NotFoundException(`Versi dokumen dengan id ${id} belum dihapus`);
 
     await this.versionRepo.restore(id);

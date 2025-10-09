@@ -1,38 +1,23 @@
 import { z } from 'zod';
 
-const toNumber = (arg: unknown) => {
-  if (typeof arg === 'string' && arg.trim() !== '') {
-    const n = Number(arg);
-    if (!Number.isNaN(n)) return n;
-  }
-  if (typeof arg === 'number') return arg;
-  return undefined;
-};
-
-export const CreateDocumentSchema = z.object({
-  title: z.string().min(3).max(255),
-  number: z.string().min(1).max(100),
-  type: z.string().min(2).max(100),
-  year: z.preprocess(toNumber, z.number().int().gte(1900).lte(new Date().getFullYear())),
-  subject: z.string().max(1000).optional(),
-  abstract: z.string().max(2000).optional(),
-  keywords: z.string().max(255).optional(),
-  status: z.enum(['draft', 'verified', 'published', 'archived']).default('draft').optional(),
-  categoryId: z.preprocess(toNumber, z.number().int().positive().nullable().optional()),
-  publisher: z.string().max(150).optional(),
-  signedBy: z.string().max(150).optional(),
-  dateSigned: z.preprocess((arg) => {
-    if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
-  }, z.date().optional()),
-  effectiveDate: z.preprocess((arg) => {
-    if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
-  }, z.date().optional()),
-  fileUrl: z.string().url().max(255).optional(),
-  verificationDate: z.preprocess((arg) => {
-    if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
-  }, z.date().optional()),
-  verifiedBy: z.preprocess(toNumber, z.number().int().positive().nullable().optional()),
+export const createDocumentSchema = z.object({
+  title: z.string().min(3),
+  number: z.string().min(1),
+  type: z.string().min(1),
+  year: z.number().int(),
+  subject: z.string().optional(),
+  abstract: z.string().optional(),
+  keywords: z.string().optional(),
+  status: z.enum(['draft', 'verified', 'published', 'archived']).default('draft'),
+  category_id: z.number().optional(),
+  publisher: z.string().optional(),
+  signed_by: z.string().optional(),
+  date_signed: z.string().optional(),
+  effective_date: z.string().optional(),
+  file_url: z.string().url().optional(),
 });
-export type CreateDocumentDto = z.infer<typeof CreateDocumentSchema>;
-export const UpdateDocumentSchema = CreateDocumentSchema.partial();
-export type UpdateDocumentDto = z.infer<typeof UpdateDocumentSchema>;
+
+export const updateDocumentSchema = createDocumentSchema.partial();
+
+export type CreateDocumentDto = z.infer<typeof createDocumentSchema>;
+export type UpdateDocumentDto = z.infer<typeof updateDocumentSchema>;

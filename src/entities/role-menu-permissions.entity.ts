@@ -8,6 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { Role } from './roles.entity';
 import { Menu } from './menus.entity';
 import { Action } from './actions.entity';
 
@@ -16,41 +17,38 @@ export class RoleMenuPermission {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
-  @Column({ name: 'role_id', type: 'bigint', unsigned: true })
-  roleId: number; // expect from JWT: user.roleId
+  @ManyToOne(() => Role, (role) => role.permissions, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'role_id' })
+  role: Role;
 
-  @Column({ name: 'menu_id', type: 'bigint', unsigned: true })
-  menuId: number;
-
-  @ManyToOne(() => Menu, { nullable: false })
+  @ManyToOne(() => Menu, (menu) => menu.permissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'menu_id' })
   menu: Menu;
 
-  @Column({ name: 'action_id', type: 'bigint', unsigned: true })
-  actionId: number;
-
-  @ManyToOne(() => Action, { nullable: false })
+  @ManyToOne(() => Action, (action) => action.permissions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'action_id' })
   action: Action;
 
-  @Column({ name: 'is_allowed', type: 'tinyint', width: 1, default: 1 })
-  isAllowed: boolean;
+  @Column({ type: 'tinyint', default: 1 })
+  is_allowed: boolean;
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'datetime', precision: 6 })
+  created_at: Date;
 
-  @Column({ name: 'created_by', type: 'bigint', unsigned: true, nullable: true })
-  createdBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  created_by?: number;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'datetime', nullable: true })
-  updatedAt?: Date | null;
+  @UpdateDateColumn({ type: 'datetime', nullable: true })
+  updated_at?: Date;
 
-  @Column({ name: 'updated_by', type: 'bigint', unsigned: true, nullable: true })
-  updatedBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  updated_by?: number;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
-  deletedAt?: Date | null;
+  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  deleted_at?: Date;
 
-  @Column({ name: 'deleted_by', type: 'bigint', unsigned: true, nullable: true })
-  deletedBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  deleted_by?: number;
 }

@@ -5,40 +5,44 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Document } from './documents.entity';
 
 @Entity('document_versions')
 export class DocumentVersion {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
-  @Column({ name: 'document_id', type: 'bigint', unsigned: true })
-  documentId: number;
+  @ManyToOne(() => Document, (doc) => doc.versions, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'document_id' })
+  document: Document;
 
-  @Column({ name: 'version_number', type: 'int' })
-  versionNumber: number;
+  @Column({ type: 'int' })
+  version_number: number;
 
-  @Column({ name: 'file_url', type: 'varchar', length: 255, nullable: true })
-  fileUrl?: string | null;
+  @Column({ length: 255, nullable: true })
+  file_url?: string;
 
   @Column({ type: 'text', nullable: true })
-  notes?: string | null;
+  notes?: string;
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'datetime', precision: 6 })
+  created_at: Date;
 
-  @Column({ name: 'created_by', type: 'bigint', unsigned: true, nullable: true })
-  createdBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  created_by?: number;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'datetime', nullable: true })
-  updatedAt?: Date | null;
+  @UpdateDateColumn({ type: 'datetime', nullable: true })
+  updated_at?: Date;
 
-  @Column({ name: 'updated_by', type: 'bigint', unsigned: true, nullable: true })
-  updatedBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  updated_by?: number;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
-  deletedAt?: Date | null;
+  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  deleted_at?: Date;
 
-  @Column({ name: 'deleted_by', type: 'bigint', unsigned: true, nullable: true })
-  deletedBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  deleted_by?: number;
 }

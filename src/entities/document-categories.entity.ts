@@ -2,10 +2,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Document } from './documents.entity';
 
@@ -18,26 +18,26 @@ export class DocumentCategory {
   name: string;
 
   @Column({ type: 'text', nullable: true })
-  description?: string | null;
+  description?: string;
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'datetime', precision: 6 })
+  created_at: Date;
 
-  @Column({ name: 'created_by', type: 'bigint', unsigned: true, nullable: true })
-  createdBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  created_by?: number;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'datetime', nullable: true })
-  updatedAt?: Date | null;
+  @UpdateDateColumn({ type: 'datetime', nullable: true })
+  updated_at?: Date;
 
-  @Column({ name: 'updated_by', type: 'bigint', unsigned: true, nullable: true })
-  updatedBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  updated_by?: number;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
-  deletedAt?: Date | null;
+  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  deleted_at?: Date;
 
-  @Column({ name: 'deleted_by', type: 'bigint', unsigned: true, nullable: true })
-  deletedBy?: number | null;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  deleted_by?: number;
 
-  @OneToMany(() => Document, (d) => d.category)
+  @OneToMany(() => Document, (doc) => doc.category)
   documents: Document[];
 }

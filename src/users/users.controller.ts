@@ -31,8 +31,8 @@ export class UsersController {
       role: user.role
         ? { id: user.role.id, name: user.role.name, description: user.role.description }
         : null,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
       // tidak expose deletedAt kecuali endpoint khusus
     };
   }
@@ -119,7 +119,12 @@ export class UsersController {
     return {
       message: 'Berhasil mendapatkan user terhapus',
       success: true,
-      data: users.map((u) => ({ id: u.id, name: u.name, email: u.email, deletedAt: u.deletedAt })),
+      data: users.map((u: User) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        deletedAt: u.deleted_at,
+      })),
     };
   }
 

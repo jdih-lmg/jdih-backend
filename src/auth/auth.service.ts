@@ -18,9 +18,14 @@ export class AuthService {
   // check validasi user dan password
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepo.findOne({ where: { email }, relations: ['role'] });
+
     if (!user) return null;
-    const isValid = await bcrypt.compare(password, user.passwordHash);
+    const passwordHash = typeof user.password_hash === 'string' ? user.password_hash : '';
+
+    const isValid = await bcrypt.compare(password, passwordHash);
+
     if (!isValid) return null;
+
     return user;
   }
 
@@ -53,8 +58,8 @@ export class AuthService {
         role: user.role
           ? { id: user.role.id, name: user.role.name, description: user.role.description }
           : null,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
       },
     };
   }
