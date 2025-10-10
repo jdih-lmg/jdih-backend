@@ -34,7 +34,7 @@ export class UsersService {
   // Create user baru
   async createUserService(data: CreateUserDto): Promise<User> {
     const dto = this.validation.validate(CreateUserSchema, data);
-    const role = await this.roleRepo.findOne({ where: { id: dto.roleId } });
+    const role = await this.roleRepo.findOne({ where: { id: dto.roleId || 2 } }); // default roleId = 2 (non-admin)
 
     if (!role) throw new NotFoundException(`Role dengan id ${dto.roleId} tidak ditemukan`);
 
@@ -56,7 +56,7 @@ export class UsersService {
     const user = await this.getUserByIdService(id);
 
     if (dto.roleId) {
-      const role = await this.roleRepo.findOne({ where: { id: dto.roleId } });
+      const role = await this.roleRepo.findOne({ where: { id: dto.roleId || 2 } });
 
       if (!role) throw new NotFoundException(`Role dengan id ${dto.roleId} tidak ditemukan`);
 
