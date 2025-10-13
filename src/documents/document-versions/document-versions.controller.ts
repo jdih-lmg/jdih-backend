@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -130,22 +131,22 @@ export class DocumentVersionsController {
   @HttpCode(HttpStatus.CREATED)
   async createDocumentVersionUnderDocumentController(
     @Param('documentId', ParseIntPipe) documentId: number,
-    @Body() dto: Omit<CreateDocumentVersionDto, 'documentId'>,
+    @Body() dto: Omit<CreateDocumentVersionDto, 'document_id'>,
   ) {
     const version = await this.versionsService.createDocumentVersionService({
       ...dto,
-      documentId,
+      document_id: documentId,
     } as CreateDocumentVersionDto);
 
     return {
       message: `Versi dokumen untuk dokumen ${documentId} berhasil dibuat`,
       success: true,
-      data: version,
+      data: this.toDocumentVersionResponse(version),
     };
   }
 
-  // update version
-  @Put('document-versions/:id')
+  // update version by id
+  @Put(':id')
   async updateDocumentVersionController(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDocumentVersionDto,
@@ -160,7 +161,7 @@ export class DocumentVersionsController {
   }
 
   // delete version
-  @Delete('document-versions/:id')
+  @Delete(':id')
   async deleteDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.deleteDocumentVersionByIdService(id);
 
@@ -172,7 +173,7 @@ export class DocumentVersionsController {
   }
 
   // get all deleted versions
-  @Get('document-versions/deleted/list')
+  @Get('deleted/list')
   async getAllDeletedDocumentVersionsController() {
     const deleted = await this.versionsService.getAllDeletedDocumentVersionsService();
 
@@ -184,7 +185,7 @@ export class DocumentVersionsController {
   }
 
   // restore version
-  @Put('document-versions/restore/:id')
+  @Patch('restore/:id')
   async restoreDeletedDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.restoreDeletedDocumentVersionByIdService(id);
 

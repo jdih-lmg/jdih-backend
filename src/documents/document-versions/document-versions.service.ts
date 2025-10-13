@@ -50,16 +50,9 @@ export class DocumentVersionsService {
 
   // get all document versions by document id
   async getAllDocumentVersionsByDocumentIdService(documentId: number): Promise<DocumentVersion[]> {
-    const document = await this.documentRepo.findOne({
-      where: { id: documentId },
-      relations: ['document'],
-    });
-
-    if (!document) throw new NotFoundException(`Dokumen dengan id ${documentId} tidak ditemukan`);
-
     const versions = await this.versionRepo.find({
       where: { document: { id: documentId } },
-      relations: ['document'],
+      relations: { document: true },
       order: { created_at: 'DESC' },
     });
 
