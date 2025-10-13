@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
@@ -8,6 +9,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { DocumentCategoryService } from './document-category.service';
 import type {
@@ -18,6 +20,16 @@ import type {
 @Controller('document-category')
 export class DocumentCategoryController {
   constructor(private readonly categoriesService: DocumentCategoryService) {}
+
+  // get all document categories with pagination or search
+  @Get('list')
+  async getAllDocumentCategoriesWithPaginationController(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('search') search?: string,
+  ) {
+    return this.categoriesService.getAllDocumentCategoriesPaginationService(page, limit, search);
+  }
 
   // get all document categories
   @Get()

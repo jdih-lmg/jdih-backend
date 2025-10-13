@@ -1,14 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { DocumentCategory } from './document-categories.entity';
 import { DocumentVersion } from './document-versions.entity';
 import { User } from './users.entity';
@@ -31,69 +21,67 @@ export class Document {
   year: number;
 
   @Column({ type: 'text', nullable: true })
-  subject?: string;
+  subject?: string | null;
 
   @Column({ type: 'text', nullable: true })
-  abstract?: string;
+  abstract?: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  keywords?: string;
+  keywords?: string | null;
 
   @Column({
     type: 'enum',
     enum: ['draft', 'verified', 'published', 'archived'],
     default: 'draft',
   })
-  status: string;
+  status: 'draft' | 'verified' | 'published' | 'archived';
 
-  @ManyToOne(() => DocumentCategory, (cat) => cat.documents, {
+  @ManyToOne(() => DocumentCategory, (category) => category.documents, {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'category_id' })
-  category?: DocumentCategory;
+  category?: DocumentCategory | null;
 
-  @Column({ length: 150, nullable: true })
-  publisher?: string;
+  @Column({ name: 'publisher', type: 'varchar', length: 150, nullable: true })
+  publisher?: string | null;
 
-  @Column({ length: 150, nullable: true })
-  signed_by?: string;
+  @Column({ name: 'signed_by', type: 'varchar', length: 150, nullable: true })
+  signed_by?: string | null;
 
-  @Column({ type: 'date', nullable: true })
-  date_signed?: Date;
+  @Column({ name: 'date_signed', type: 'date', nullable: true })
+  dateSigned?: Date | null;
 
-  @Column({ type: 'date', nullable: true })
-  effective_date?: Date;
+  @Column({ name: 'effective_date', type: 'date', nullable: true })
+  effectiveDate?: Date | null;
 
-  @Column({ length: 255, nullable: true })
-  file_url?: string;
+  @Column({ name: 'file_url', type: 'varchar', length: 255, nullable: true })
+  fileUrl?: string | null;
 
-  @Column({ type: 'datetime', nullable: true })
-  verification_date?: Date;
+  @Column({ name: 'verification_date', type: 'datetime', nullable: true })
+  verificationDate?: Date | null;
 
-  @ManyToOne(() => User, (user) => user.verifiedDocuments, {
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'verified_by' })
-  verified_by?: User;
+  verified_by?: User | null;
 
-  @CreateDateColumn({ type: 'datetime', precision: 6 })
+  @OneToMany(() => DocumentVersion, (version) => version.document)
+  versions: DocumentVersion[];
+
+  @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
   created_at: Date;
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true })
-  created_by?: number;
+  @Column({ name: 'created_by', type: 'bigint', unsigned: true, nullable: true })
+  created_by?: number | null;
 
-  @UpdateDateColumn({ type: 'datetime', nullable: true })
-  updated_at?: Date;
+  @Column({ name: 'updated_at', type: 'datetime', nullable: true })
+  updated_at?: Date | null;
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true })
-  updated_by?: number;
+  @Column({ name: 'updated_by', type: 'bigint', unsigned: true, nullable: true })
+  updated_by?: number | null;
 
-  @DeleteDateColumn({ type: 'datetime', nullable: true })
-  deleted_at?: Date;
+  @Column({ name: 'deleted_at', type: 'datetime', nullable: true })
+  deleted_at?: Date | null;
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true })
-  deleted_by?: number;
-
-  @OneToMany(() => DocumentVersion, (ver) => ver.document)
-  versions: DocumentVersion[];
+  @Column({ name: 'deleted_by', type: 'bigint', unsigned: true, nullable: true })
+  deleted_by?: number | null;
 }
