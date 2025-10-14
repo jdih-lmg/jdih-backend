@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 import { Document } from 'src/entities/documents.entity';
-import { DocumentVersion } from 'src/entities/document-versions.entity';
 import { DocumentCategory } from 'src/entities/document-categories.entity';
 import {
   CreateDocumentDto,
@@ -11,13 +10,14 @@ import {
   updateDocumentSchema,
 } from './dto/document.dto';
 import { ValidationService } from 'src/common/validation.service';
+import { User } from 'src/entities/users.entity';
 
 @Injectable()
 export class DocumentsService {
   constructor(
     @InjectRepository(Document) private documentRepo: Repository<Document>,
-    @InjectRepository(DocumentVersion) private versionRepo: Repository<DocumentVersion>,
     @InjectRepository(DocumentCategory) private categoryRepo: Repository<DocumentCategory>,
+    @InjectRepository(User) private userRepo: Repository<User>,
     private readonly validation: ValidationService,
   ) {}
 
@@ -42,38 +42,63 @@ export class DocumentsService {
   }
 
   // create document
-  async createDocumentService(data: CreateDocumentDto): Promise<Document> {
+  async createDocumentService(data: CreateDocumentDto, userId?: number): Promise<Document> {
+    let category: DocumentCategory | null = null;
+    let verifiedBy: User | null = null;
+
     const dto = this.validation.validate(createDocumentSchema, data);
 
-    const category = data.category_id
-      ? await this.categoryRepo.findOne({ where: { id: data.category_id } })
-      : null;
+    if (dto.category_id) {
+      category = await this.categoryRepo.findOne({ where: { id: dto.category_id } });
+    }
+
+    if (dto.verified_by) {
+      verifiedBy = await this.userRepo.findOne({ where: { id: dto.verified_by } });
+    }
 
     const doc = this.documentRepo.create({
       ...dto,
-      category: category ?? undefined,
+      category,
+      verified_by: verifiedBy,
+      created_by: userId || null,
     });
 
     return this.documentRepo.save(doc);
   }
 
   // update document by id
-  async updateDocumentByIdService(id: number, data: UpdateDocumentDto): Promise<Document> {
+  async updateDocumentByIdService(
+    id: number,
+    data: UpdateDocumentDto,
+    userId?: number,
+  ): Promise<Document> {
+    const document = await this.getDocumentByIdService(id);
+
+    if (data.category_id) {
+      document.category = await this.categoryRepo.findOne({ where: { id: data.category_id } });
+    }
+
+    if (data.verified_by) {
+      document.verified_by = await this.userRepo.findOne({ where: { id: data.verified_by } });
+    }
+
     const dto = this.validation.validate(updateDocumentSchema, data);
-    const doc = await this.getDocumentByIdService(id);
 
-    Object.assign(doc, dto);
+    Object.assign(document, { ...dto, updated_by: userId || null });
 
-    return this.documentRepo.save(doc);
+    return this.documentRepo.save(document);
   }
 
   // delete document by id
-  async deleteDocumentByIdService(id: number): Promise<Document> {
-    const doc = await this.getDocumentByIdService(id);
+  async deleteDocumentByIdService(id: number, userId?: number): Promise<Document> {
+    const document = await this.getDocumentByIdService(id);
 
-    await this.documentRepo.softRemove(doc);
+    document.deleted_by = userId || null;
 
-    return doc;
+    await this.documentRepo.save(document);
+    await this.documentRepo.softDelete(id);
+
+    return document;
   }
 
   // get all deleted document
