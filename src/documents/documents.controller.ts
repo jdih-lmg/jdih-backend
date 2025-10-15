@@ -10,13 +10,23 @@ import {
   HttpStatus,
   HttpCode,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import type { CreateDocumentDto, UpdateDocumentDto } from './dto/document.dto';
+import type { DocumentQueryDto } from './dto/document-query.dto';
 
 @Controller('documents')
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
+
+  // get all documents with pagination and filters
+  @Get('list')
+  async getAllDocumentsPaginationController(@Query() query: DocumentQueryDto) {
+    const docs = await this.documentsService.getAllDocumentsPaginationService(query);
+
+    return docs;
+  }
 
   // get all documents
   @Get()
