@@ -9,9 +9,10 @@ import { DocumentVersionsController } from './document-versions/document-version
 import { DocumentVersionsService } from './document-versions/document-versions.service';
 import { DocumentCategoryService } from './document-category/document-category.service';
 import { DocumentCategoryController } from './document-category/document-category.controller';
+import { User } from 'src/entities/users.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Document, DocumentVersion, DocumentCategory])],
+  imports: [TypeOrmModule.forFeature([Document, DocumentVersion, DocumentCategory, User])],
   controllers: [DocumentsController, DocumentVersionsController, DocumentCategoryController],
   providers: [DocumentsService, DocumentVersionsService, DocumentCategoryService],
 })

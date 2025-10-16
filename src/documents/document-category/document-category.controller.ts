@@ -10,14 +10,21 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { DocumentCategoryService } from './document-category.service';
 import type {
   CreateDocumentCategoryDto,
   UpdateDocumentCategoryDto,
 } from '../dto/document-category.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RoleEnum } from 'src/entities/roles.entity';
 
 @Controller('document-category')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class DocumentCategoryController {
   constructor(private readonly categoriesService: DocumentCategoryService) {}
 
@@ -57,8 +64,12 @@ export class DocumentCategoryController {
 
   // create document category
   @Post()
-  async createDocumentCategoryController(@Body() dto: CreateDocumentCategoryDto) {
-    const category = await this.categoriesService.createDocumentCategoryService(dto);
+  @Roles(RoleEnum.ADMIN)
+  async createDocumentCategoryController(
+    @Body() dto: CreateDocumentCategoryDto,
+    @CurrentUser('userId') userId: number,
+  ) {
+    const category = await this.categoriesService.createDocumentCategoryService(dto, userId);
 
     return {
       message: 'Berhasil membuat kategori dokumen',

@@ -4,7 +4,6 @@ import { ValidationService } from 'src/common/validation.service';
 import { Role } from 'src/entities/roles.entity';
 import { User } from 'src/entities/users.entity';
 import { Repository, Not, IsNull } from 'typeorm';
-import { CreateUserDto, CreateUserSchema } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto, UpdateUserSchema } from './dto/update-user.dto';
 
@@ -31,24 +30,24 @@ export class UsersService {
     return user;
   }
 
-  // Create user baru
-  async createUserService(data: CreateUserDto): Promise<User> {
-    const dto = this.validation.validate(CreateUserSchema, data);
-    const role = await this.roleRepo.findOne({ where: { id: dto.roleId || 2 } }); // default roleId = 2 (non-admin)
+  // // Create user baru
+  // async createUserService(data: CreateUserDto): Promise<User> {
+  //   const dto = this.validation.validate(CreateUserSchema, data);
+  //   const role = await this.roleRepo.findOne({ where: { id: dto.roleId || 2 } }); // default roleId = 2 (non-admin)
 
-    if (!role) throw new NotFoundException(`Role dengan id ${dto.roleId} tidak ditemukan`);
+  //   if (!role) throw new NotFoundException(`Role dengan id ${dto.roleId} tidak ditemukan`);
 
-    const pwHashed = await bcrypt.hash(dto.password, Number(process.env.BCRYPT_SALT_ROUNDS) || 10);
+  //   const pwHashed = await bcrypt.hash(dto.password, Number(process.env.BCRYPT_SALT_ROUNDS) || 10);
 
-    const user = this.userRepo.create({
-      name: dto.name,
-      email: dto.email,
-      password_hash: pwHashed,
-      role: role,
-    });
+  //   const user = this.userRepo.create({
+  //     name: dto.name,
+  //     email: dto.email,
+  //     password_hash: pwHashed,
+  //     role: role,
+  //   });
 
-    return this.userRepo.save(user);
-  }
+  //   return this.userRepo.save(user);
+  // }
 
   // Update user by id
   async updateUserService(id: number, data: UpdateUserDto): Promise<User> {

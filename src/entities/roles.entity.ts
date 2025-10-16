@@ -45,3 +45,9 @@ export class Role {
   @OneToMany(() => RoleMenuPermission, (rmp) => rmp.role)
   permissions: RoleMenuPermission[];
 }
+
+export enum RoleEnum {
+  ADMIN = 'admin',
+  VERIFIKATOR = 'verifikator',
+  USER = 'user',
+}

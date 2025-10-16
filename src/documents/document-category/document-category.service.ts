@@ -34,7 +34,7 @@ export class DocumentCategoryService {
       data,
       total,
       page,
-      lastPage: Math.ceil(total / limit) || 1,
+      last_page: Math.ceil(total / limit) || 1,
     };
   }
 

@@ -7,13 +7,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { ValidationService } from 'src/common/validation.service';
+import { Role } from 'src/entities/roles.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Role]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'default_secret_key',
+      secret: process.env.JWT_SECRET || 'kunci_rahasia_jwt',
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1d' },
     }),
   ],

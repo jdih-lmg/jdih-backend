@@ -20,7 +20,7 @@ export class DocumentVersionsService {
   ) {}
 
   // get all document versions with pagination or search
-  async getAllDocumentVersionsPaginationService(page = 1, limit = 10, search?: string) {
+  async getAllDocumentVersionsPaginationService(page: number, limit: number, search?: string) {
     const skip = (page - 1) * limit;
     const where = search ? { notes: ILike(`%${search}%`) } : {};
 
