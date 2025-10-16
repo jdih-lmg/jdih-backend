@@ -1,21 +1,8 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-  Patch,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
-import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import { User } from 'src/entities/users.entity';
-import { Roles } from 'src/auth/roles.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('users')
 // @UseGuards(JwtAuthGuard, RolesGuard) // semua endpoint butuh auth
@@ -63,20 +50,6 @@ export class UsersController {
 
     return {
       message: `Berhasil mendapatkan user id ${id}`,
-      success: true,
-      data: this.toUserResponse(user),
-    };
-  }
-
-  // Create user
-  @Post()
-  @Roles('admin')
-  @HttpCode(HttpStatus.CREATED)
-  async createUserController(@Body() dto: CreateUserDto) {
-    const user = await this.userService.createUserService(dto);
-
-    return {
-      message: 'Berhasil membuat user baru',
       success: true,
       data: this.toUserResponse(user),
     };

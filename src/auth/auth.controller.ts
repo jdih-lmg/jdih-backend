@@ -1,23 +1,30 @@
-import { Body, Controller, Post, Get, UseGuards, Req } from '@nestjs/common';
-import { AuthService, type AuthResult } from './auth.service';
+import { Body, Controller, Post, Get, Req, HttpCode, HttpStatus } from '@nestjs/common';
+import { AuthService } from './auth.service';
 import type { LoginDto } from './dto/login.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import type { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // register user
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() body: RegisterDto) {
+    const result = await this.authService.register(body);
+
+    return { message: 'Registrasi berhasil', success: true, data: result };
+  }
+
+  // login user
   @Post('login')
-  async login(
-    @Body() body: LoginDto,
-  ): Promise<{ message: string; success: true; data: AuthResult }> {
-    const result = await this.authService.login(body);
-    return { message: 'Login berhasil', success: true, data: result };
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() body: LoginDto) {
+    return this.authService.login(body);
   }
 
   // Endpoint untuk melihat payload user dari JWT (debug & client fetch profil cepat)
   @Get('me')
-  @UseGuards(JwtAuthGuard)
   me(@Req() req: { user?: { userId: number | string; email: string; role: string | null } }) {
     const user = req.user || null;
     return {

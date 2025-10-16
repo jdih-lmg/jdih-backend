@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/users.entity';
 import { JwtService } from '@nestjs/jwt';
@@ -6,31 +6,76 @@ import { Repository } from 'typeorm';
 import { ValidationService } from 'src/common/validation.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto, LoginSchema } from './dto/login.dto';
+import { RegisterDto, RegisterSchema } from './dto/register.dto';
+import { ConfigService } from '@nestjs/config';
+import { Role } from 'src/entities/roles.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(Role) private readonly roleRepo: Repository<Role>,
     private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
     private readonly validation: ValidationService,
   ) {}
 
   // check validasi user dan password
-  async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.userRepo.findOne({ where: { email }, relations: ['role'] });
+  async validateUser(userId: number): Promise<User | null> {
+    return this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['role'],
+    });
+  }
 
-    if (!user) return null;
-    const passwordHash = typeof user.password_hash === 'string' ? user.password_hash : '';
+  // register user
+  async register(data: RegisterDto) {
+    const dto = this.validation.validate(RegisterSchema, data);
 
-    const isValid = await bcrypt.compare(password, passwordHash);
+    const existingUser = await this.userRepo.findOne({ where: { email: dto.email } });
+    if (existingUser) {
+      throw new ConflictException('Email sudah terdaftar');
+    }
 
-    if (!isValid) return null;
+    const hashed = await bcrypt.hash(
+      dto.password,
+      Number(this.config.get('BCRYPT_SALT_ROUNDS')) || 10,
+    );
 
-    return user;
+    const defaultRole = await this.roleRepo.findOne({ where: { name: 'user' } });
+
+    if (!defaultRole) {
+      throw new ConflictException('Role default tidak ditemukan, silakan hubungi admin');
+    }
+
+    const user = this.userRepo.create({
+      name: dto.name,
+      email: dto.email,
+      password_hash: hashed,
+      role: defaultRole,
+    });
+
+    await this.userRepo.save(user);
+
+    const token = await this.signToken(user.id, user.email);
+
+    return {
+      message: 'Registrasi berhasil',
+      success: true,
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+          ? { id: user.role.id, name: user.role.name, description: user.role.description }
+          : null,
+        access_token: token,
+      },
+    };
   }
 
   // login user
-  async login(data: LoginDto): Promise<AuthResult> {
+  async login(data: LoginDto) {
     // Normalisasi email (trim + lowercase) sebelum parsing zod
     const normalizedInput: LoginDto = {
       ...data,
@@ -40,18 +85,23 @@ export class AuthService {
 
     const dto = this.validation.validate(LoginSchema, normalizedInput);
 
-    const user = await this.validateUser(dto.email, dto.password);
+    const user = await this.userRepo.findOne({ where: { email: dto.email }, relations: ['role'] });
 
     if (!user) {
       throw new UnauthorizedException('Email atau password salah');
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role ? user.role.name : null };
-    const token = this.jwtService.sign(payload);
+    const isValid = await bcrypt.compare(dto.password, user.password_hash);
+    if (!isValid) {
+      throw new UnauthorizedException('Email atau password salah');
+    }
+
+    const token = await this.signToken(user.id, user.email);
 
     return {
-      token,
-      user: {
+      message: 'Login berhasil',
+      success: true,
+      data: {
         id: user.id,
         name: user.name,
         email: user.email,
@@ -59,28 +109,15 @@ export class AuthService {
           ? { id: user.role.id, name: user.role.name, description: user.role.description }
           : null,
         createdAt: user.created_at,
-        updatedAt: user.updated_at,
+        updatedAt: user.updated_at || undefined,
       },
+      access_token: token,
     };
   }
-}
 
-export interface AuthResultUserRole {
-  id: number;
-  name: string;
-  description?: string | null;
-}
+  private async signToken(userId: number, email: string): Promise<string> {
+    const payload = { sub: userId, email };
 
-export interface AuthResultUser {
-  id: number;
-  name: string;
-  email: string;
-  role: AuthResultUserRole | null;
-  createdAt: Date;
-  updatedAt?: Date;
-}
-
-export interface AuthResult {
-  token: string;
-  user: AuthResultUser;
+    return this.jwtService.signAsync(payload);
+  }
 }
