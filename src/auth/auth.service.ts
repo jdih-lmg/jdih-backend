@@ -116,7 +116,11 @@ export class AuthService {
   }
 
   private async signToken(userId: number, email: string): Promise<string> {
-    const payload = { sub: userId, email };
+    const payload = {
+      sub: userId,
+      email,
+      role: (await this.validateUser(userId))?.role?.name || null,
+    };
 
     return this.jwtService.signAsync(payload);
   }

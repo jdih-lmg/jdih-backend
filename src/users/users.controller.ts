@@ -1,11 +1,24 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Put,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import { User } from 'src/entities/users.entity';
 import { Roles } from 'src/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { RoleEnum } from 'src/entities/roles.entity';
 
 @Controller('users')
-// @UseGuards(JwtAuthGuard, RolesGuard) // semua endpoint butuh auth
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
@@ -31,7 +44,7 @@ export class UsersController {
 
   // Get all users
   @Get()
-  @Roles('admin')
+  @Roles(RoleEnum.USER)
   async getAllUserController() {
     const data = await this.userService.getAllUserService();
 
@@ -44,7 +57,6 @@ export class UsersController {
 
   // Get user by id
   @Get(':id')
-  @Roles('admin', 'user')
   async getUserByIdController(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.getUserByIdService(id);
 
@@ -57,7 +69,6 @@ export class UsersController {
 
   // Update user by id
   @Put(':id')
-  @Roles('admin', 'user')
   async updateUserController(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     const user = await this.userService.updateUserService(id, dto);
 
@@ -70,7 +81,6 @@ export class UsersController {
 
   // Delete user by id (soft delete)
   @Delete(':id')
-  @Roles('admin')
   async deleteUserController(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.deleteUserService(id);
 
@@ -86,7 +96,6 @@ export class UsersController {
 
   // List user yang sudah soft deleted
   @Get('deleted/list')
-  @Roles('admin')
   async getDeletedUsers() {
     const users = await this.userService.getDeletedUsers();
     return {
@@ -103,7 +112,6 @@ export class UsersController {
 
   // Restore user yang soft deleted
   @Patch(':id/restore')
-  @Roles('admin')
   async restoreUser(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.restoreUserService(id);
     return {

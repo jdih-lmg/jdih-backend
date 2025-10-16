@@ -1,8 +1,9 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 type MaybeInfo = { name?: string; message?: string } | undefined | null;
 
+@Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest<TUser = any>(err: unknown, user: TUser, info: MaybeInfo): TUser {
     if (err || !user) {

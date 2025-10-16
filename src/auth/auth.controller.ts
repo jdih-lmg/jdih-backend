@@ -1,7 +1,8 @@
-import { Body, Controller, Post, Get, Req, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, Get, Req, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +26,7 @@ export class AuthController {
 
   // Endpoint untuk melihat payload user dari JWT (debug & client fetch profil cepat)
   @Get('me')
+  @UseGuards(JwtAuthGuard)
   me(@Req() req: { user?: { userId: number | string; email: string; role: string | null } }) {
     const user = req.user || null;
     return {
