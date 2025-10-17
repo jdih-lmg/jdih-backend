@@ -95,7 +95,11 @@ export class DocumentCategoryService {
       throw new NotFoundException(`Kategori dokumen dengan id ${id} tidak ditemukan`);
     }
 
-    await this.categoryRepo.update(id, { deleted_by: userId === undefined ? undefined : userId });
+    if (userId) {
+      category.deleted_by = userId;
+      await this.categoryRepo.save(category);
+    }
+
     await this.categoryRepo.softRemove(category);
 
     return category;
