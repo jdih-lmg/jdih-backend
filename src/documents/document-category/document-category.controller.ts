@@ -30,6 +30,7 @@ export class DocumentCategoryController {
 
   // get all document categories with pagination or search
   @Get('list')
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   async getAllDocumentCategoriesWithPaginationController(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -40,6 +41,7 @@ export class DocumentCategoryController {
 
   // get all document categories
   @Get()
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   async getAllDocumentCategoriesController() {
     const categories = await this.categoriesService.getAllDocumentCategoriesService();
 
@@ -52,6 +54,7 @@ export class DocumentCategoryController {
 
   // get document category by id
   @Get(':id')
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   async getDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.getDocumentCategoryByIdService(id);
 
@@ -80,11 +83,13 @@ export class DocumentCategoryController {
 
   // update document category by id
   @Put(':id')
+  @Roles(RoleEnum.ADMIN)
   async updateDocumentCategoryByIdController(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDocumentCategoryDto,
+    @CurrentUser('userId') userId: number,
   ) {
-    const category = await this.categoriesService.updateDocumentCategoryService(id, dto);
+    const category = await this.categoriesService.updateDocumentCategoryService(id, dto, userId);
 
     return {
       message: `Berhasil memperbarui kategori dokumen dengan id ${id}`,
@@ -95,8 +100,12 @@ export class DocumentCategoryController {
 
   // delete document category by id
   @Delete(':id')
-  async deleteDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
-    const category = await this.categoriesService.deleteDocumentCategoryService(id);
+  @Roles(RoleEnum.ADMIN)
+  async deleteDocumentCategoryByIdController(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('userId') userId: number,
+  ) {
+    const category = await this.categoriesService.deleteDocumentCategoryService(id, userId);
 
     return {
       message: `Berhasil menghapus kategori dokumen dengan id ${id}`,
@@ -107,6 +116,7 @@ export class DocumentCategoryController {
 
   // get all deleted document categories
   @Get('deleted/list')
+  @Roles(RoleEnum.ADMIN)
   async getAllDeletedDocumentCategoriesController() {
     const deleted = await this.categoriesService.getAllDeletedDocumentCategoriesService();
 
@@ -119,6 +129,7 @@ export class DocumentCategoryController {
 
   // restore deleted document category by id
   @Patch('restore/:id')
+  @Roles(RoleEnum.ADMIN)
   async restoreDeletedDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.restoreDeletedDocumentCategoryService(id);
 

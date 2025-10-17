@@ -16,6 +16,7 @@ import { AuditLog } from './entities/audit-logs.entity';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { DocumentsModule } from './documents/documents.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { DocumentsModule } from './documents/documents.module';
     UsersModule,
     AuthModule,
     DocumentsModule,
+    AuditLogsModule,
   ],
   controllers: [AppController],
   providers: [],
