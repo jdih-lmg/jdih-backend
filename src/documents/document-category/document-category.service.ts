@@ -9,11 +9,13 @@ import {
   UpdateDocumentCategoryDto,
   UpdateDocumentCategorySchema,
 } from '../dto/document-category.dto';
+import { AuditAction, AuditLogsService } from 'src/audit-logs/audit-logs.service';
 
 @Injectable()
 export class DocumentCategoryService {
   constructor(
     @InjectRepository(DocumentCategory) private readonly categoryRepo: Repository<DocumentCategory>,
+    private readonly auditLogsService: AuditLogsService,
     private readonly validation: ValidationService,
   ) {}
 
@@ -63,7 +65,18 @@ export class DocumentCategoryService {
       ...(userId !== undefined ? { created_by: userId } : {}),
     });
 
-    return await this.categoryRepo.save(category);
+    const saved = await this.categoryRepo.save(category);
+
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.CREATE,
+      'DocumentCategory',
+      saved.id,
+      null,
+      saved,
+    );
+
+    return saved;
   }
 
   // update document category by id
@@ -73,18 +86,32 @@ export class DocumentCategoryService {
     userId?: number,
   ): Promise<DocumentCategory> {
     const dto = this.validation.validate(UpdateDocumentCategorySchema, data);
-    const category = await this.getDocumentCategoryByIdService(id);
+    const target = await this.getDocumentCategoryByIdService(id);
 
-    if (!category) {
+    if (!target) {
       throw new NotFoundException(`Kategori dokumen dengan id ${id} tidak ditemukan`);
     }
 
-    Object.assign(category, dto, {
-      updated_by: userId || null,
-      updated_at: new Date(),
-    });
+    const oldData: DocumentCategory = JSON.parse(JSON.stringify(target)) as DocumentCategory;
 
-    return await this.categoryRepo.save(category);
+    Object.assign(target, dto);
+
+    if (userId !== undefined) {
+      target.updated_by = userId;
+    }
+
+    const updated = await this.categoryRepo.save(target);
+
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.UPDATE,
+      'DocumentCategory',
+      id,
+      oldData,
+      updated,
+    );
+
+    return updated;
   }
 
   // delete document category by id
@@ -100,9 +127,18 @@ export class DocumentCategoryService {
       await this.categoryRepo.save(category);
     }
 
-    await this.categoryRepo.softRemove(category);
+    const deleted = this.categoryRepo.softRemove(category);
 
-    return category;
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.DELETE,
+      'DocumentCategory',
+      id,
+      category,
+      null,
+    );
+
+    return deleted;
   }
 
   // get all deleted document categories
