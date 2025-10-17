@@ -11,12 +11,19 @@ import {
   HttpCode,
   Patch,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import type { CreateDocumentDto, UpdateDocumentDto } from './dto/document.dto';
 import type { DocumentQueryDto } from './dto/document-query.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RoleEnum } from 'src/entities/roles.entity';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @Controller('documents')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
@@ -55,8 +62,12 @@ export class DocumentsController {
   // create document
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createDocumentConroller(@Body() body: CreateDocumentDto) {
-    const doc = await this.documentsService.createDocumentService(body);
+  @Roles(RoleEnum.ADMIN)
+  async createDocumentConroller(
+    @Body() body: CreateDocumentDto,
+    @CurrentUser('userId') userId: number,
+  ) {
+    const doc = await this.documentsService.createDocumentService(body, userId);
 
     return {
       message: 'Berhasil membuat dokumen baru',
@@ -67,11 +78,13 @@ export class DocumentsController {
 
   // update document by id
   @Put(':id')
+  @Roles(RoleEnum.ADMIN)
   async updateDocumentByIdController(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateDocumentDto,
+    @CurrentUser('userId') userId: number,
   ) {
-    const doc = await this.documentsService.updateDocumentByIdService(id, body);
+    const doc = await this.documentsService.updateDocumentByIdService(id, body, userId);
 
     return {
       message: `Berhasil memperbarui dokumen dengan id ${id}`,
@@ -82,8 +95,12 @@ export class DocumentsController {
 
   // delete document by id
   @Delete(':id')
-  async deleteDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
-    const doc = await this.documentsService.deleteDocumentByIdService(id);
+  @Roles(RoleEnum.ADMIN)
+  async deleteDocumentByIdController(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('userId') userId: number,
+  ) {
+    const doc = await this.documentsService.deleteDocumentByIdService(id, userId);
 
     return {
       message: `Berhasil menghapus dokumen dengan id ${id}`,
@@ -106,6 +123,7 @@ export class DocumentsController {
 
   // restore deleted document by id
   @Patch('restore/:id')
+  @Roles(RoleEnum.ADMIN)
   async restoreDeletedDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
     const doc = await this.documentsService.restoreDeletedDocumentByIdService(id);
 

@@ -10,12 +10,14 @@ import {
   UpdateDocumentVersionDto,
   UpdateDocumentVersionSchema,
 } from '../dto/document-version.dto';
+import { AuditAction, AuditLogsService } from 'src/audit-logs/audit-logs.service';
 
 @Injectable()
 export class DocumentVersionsService {
   constructor(
     @InjectRepository(DocumentVersion) private readonly versionRepo: Repository<DocumentVersion>,
     @InjectRepository(Document) private readonly documentRepo: Repository<Document>,
+    private readonly auditLogsService: AuditLogsService,
     private readonly validation: ValidationService,
   ) {}
 
@@ -83,10 +85,20 @@ export class DocumentVersionsService {
       ...data,
       document,
       created_by: userId,
-      updated_by: userId,
     });
 
-    return this.versionRepo.save(version);
+    const saved = this.versionRepo.save(version);
+
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.CREATE,
+      'DocumentVersion',
+      (await saved).id,
+      null,
+      saved,
+    );
+
+    return saved;
   }
 
   // alternatif: create spesifik di bawah document (inject documentId)
@@ -108,10 +120,20 @@ export class DocumentVersionsService {
       ...data,
       document,
       created_by: userId,
-      updated_by: userId,
     });
 
-    return this.versionRepo.save(version);
+    const saved = this.versionRepo.save(version);
+
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.CREATE,
+      'DocumentVersion',
+      (await saved).id,
+      null,
+      saved,
+    );
+
+    return saved;
   }
 
   // update document version by id
@@ -121,13 +143,32 @@ export class DocumentVersionsService {
     userId?: number,
   ): Promise<DocumentVersion> {
     const dto = this.validation.validate(UpdateDocumentVersionSchema, data);
-    const version = await this.getDocumentVersionByIdService(id);
+    const target = await this.getDocumentVersionByIdService(id);
 
-    Object.assign(version, dto, {
-      updated_by: userId,
-    });
+    if (!target) {
+      throw new NotFoundException(`Versi dokumen dengan id ${id} tidak ditemukan`);
+    }
 
-    return this.versionRepo.save(version);
+    const oldData: DocumentVersion = JSON.parse(JSON.stringify(target)) as DocumentVersion;
+
+    Object.assign(target, dto);
+
+    if (userId !== undefined) {
+      target.updated_by = userId;
+    }
+
+    const updated = await this.versionRepo.save(target);
+
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.UPDATE,
+      'DocumentVersion',
+      updated.id,
+      oldData,
+      updated,
+    );
+
+    return updated;
   }
 
   // soft delete document version by id
@@ -138,7 +179,18 @@ export class DocumentVersionsService {
 
     version.deleted_by = userId;
 
-    return this.versionRepo.softRemove(version);
+    const deleted = this.versionRepo.softRemove(version);
+
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.DELETE,
+      'DocumentVersion',
+      id,
+      version,
+      null,
+    );
+
+    return deleted;
   }
 
   // get all deleted document versions

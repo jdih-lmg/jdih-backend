@@ -12,6 +12,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { DocumentVersionsService } from './document-versions.service';
 import type {
@@ -19,8 +20,14 @@ import type {
   UpdateDocumentVersionDto,
 } from '../dto/document-version.dto';
 import { DocumentVersion } from 'src/entities/document-versions.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RoleEnum } from 'src/entities/roles.entity';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @Controller('document-versions')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class DocumentVersionsController {
   constructor(private readonly versionsService: DocumentVersionsService) {}
 
@@ -116,8 +123,12 @@ export class DocumentVersionsController {
   // create version untuk document (documentId di dalam body)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createDocumentVersionController(@Body() dto: CreateDocumentVersionDto) {
-    const version = await this.versionsService.createDocumentVersionService(dto);
+  @Roles(RoleEnum.ADMIN)
+  async createDocumentVersionController(
+    @Body() dto: CreateDocumentVersionDto,
+    @CurrentUser('userId') userId: number,
+  ) {
+    const version = await this.versionsService.createDocumentVersionService(dto, userId);
 
     return {
       message: 'Versi dokumen berhasil dibuat',
@@ -132,10 +143,12 @@ export class DocumentVersionsController {
   async createDocumentVersionUnderDocumentController(
     @Param('documentId', ParseIntPipe) documentId: number,
     @Body() dto: Omit<CreateDocumentVersionDto, 'document_id'>,
+    @CurrentUser('userId') userId: number,
   ) {
     const version = await this.versionsService.createDocumentVersionService({
       ...dto,
       document_id: documentId,
+      userId,
     } as CreateDocumentVersionDto);
 
     return {
@@ -147,11 +160,13 @@ export class DocumentVersionsController {
 
   // update version by id
   @Put(':id')
+  @Roles(RoleEnum.ADMIN)
   async updateDocumentVersionController(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDocumentVersionDto,
+    @CurrentUser('userId') userId: number,
   ) {
-    const version = await this.versionsService.updateDocumentVersionService(id, dto);
+    const version = await this.versionsService.updateDocumentVersionService(id, dto, userId);
 
     return {
       message: `Versi dokumen dengan id ${id} berhasil diupdate`,
@@ -162,8 +177,12 @@ export class DocumentVersionsController {
 
   // delete version
   @Delete(':id')
-  async deleteDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
-    const version = await this.versionsService.deleteDocumentVersionByIdService(id);
+  @Roles(RoleEnum.ADMIN)
+  async deleteDocumentVersionByIdController(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('userId') userId: number,
+  ) {
+    const version = await this.versionsService.deleteDocumentVersionByIdService(id, userId);
 
     return {
       message: `Versi dokumen dengan id ${id} berhasil dihapus`,
@@ -186,6 +205,7 @@ export class DocumentVersionsController {
 
   // restore version
   @Patch('restore/:id')
+  @Roles(RoleEnum.ADMIN)
   async restoreDeletedDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.restoreDeletedDocumentVersionByIdService(id);
 
