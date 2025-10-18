@@ -25,7 +25,8 @@ CREATE TABLE `actions`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
+ENGINE = InnoDB
+AUTO_INCREMENT = 8;
 -- -------------------------------------------------------------
 
 
@@ -42,7 +43,8 @@ CREATE TABLE `audit_logs`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
+ENGINE = InnoDB
+AUTO_INCREMENT = 4;
 -- -------------------------------------------------------------
 
 
@@ -61,7 +63,7 @@ CREATE TABLE `document_categories`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 3;
+AUTO_INCREMENT = 7;
 -- -------------------------------------------------------------
 
 
@@ -82,7 +84,7 @@ CREATE TABLE `document_versions`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 2;
+AUTO_INCREMENT = 4;
 -- -------------------------------------------------------------
 
 
@@ -134,20 +136,8 @@ CREATE TABLE `menus`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
--- -------------------------------------------------------------
-
-
--- CREATE TABLE "migrations" -----------------------------------
-CREATE TABLE `migrations`( 
-	`id` Int( 0 ) AUTO_INCREMENT NOT NULL,
-	`timestamp` BigInt( 0 ) NOT NULL,
-	`name` VarChar( 255 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-	PRIMARY KEY ( `id` ) )
-CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 2;
+AUTO_INCREMENT = 4;
 -- -------------------------------------------------------------
 
 
@@ -167,7 +157,8 @@ CREATE TABLE `role_menu_permissions`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
+ENGINE = InnoDB
+AUTO_INCREMENT = 19;
 -- -------------------------------------------------------------
 
 
@@ -208,7 +199,7 @@ CREATE TABLE `users`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 15;
+AUTO_INCREMENT = 17;
 -- -------------------------------------------------------------
 
 
@@ -235,7 +226,10 @@ INSERT INTO `document_categories`(`id`,`name`,`description`,`created_at`,`create
 ( '1', 'Peraturan Daerah', 'Kategori untuk Perda dan turunannya', '2025-10-07 08:00:14.163062', NULL, NULL, NULL, NULL, NULL ),
 ( '2', 'Peraturan Bupati', 'Kategori untuk Perbup dan turunannya', '2025-10-07 08:00:50.217063', NULL, NULL, NULL, NULL, NULL ),
 ( '3', 'Test Category Edit', 'Testing kategori Edit', '2025-10-08 05:55:10.563214', NULL, '2025-10-08 05:56:58.000000', NULL, NULL, NULL ),
-( '4', 'Test', 'Testing Cat', '2025-10-08 05:57:36.756715', NULL, '2025-10-08 06:00:16.000000', NULL, NULL, NULL );
+( '4', 'Test', 'Testing Cat', '2025-10-08 05:57:36.756715', NULL, '2025-10-17 02:39:29.000000', NULL, NULL, '9' ),
+( '5', 'Peraturen Hukum Efisien', 'Peraturan Tentang Hukum Efisiensi Kabupaten.', '2025-10-12 11:22:28.969865', NULL, '2025-10-12 18:23:25.174000', NULL, NULL, NULL ),
+( '6', 'Peraturen Pondok Pesantren Fix', 'Peraturan tentang pondok pesantren di kabupaten Lamongan.', '2025-10-16 14:23:30.747138', '1', '2025-10-17 02:40:43.000000', '9', NULL, '9' ),
+( '7', 'Peraturen Produsen Minuman Herbal', 'Peraturan tentang produsen minuman herbal di kabupaten Lamongan.', '2025-10-17 09:38:28.376759', '1', '2025-10-17 10:10:33.000000', '1', NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -245,7 +239,9 @@ BEGIN;
 
 INSERT INTO `document_versions`(`id`,`document_id`,`version_number`,`file_url`,`notes`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
 ( '1', '4', '2', 'https://contoh.example.pdf', 'versi awal amandemen', '2025-10-07 05:18:43.489573', NULL, NULL, NULL, NULL, NULL ),
-( '2', '4', '4', 'https://contoh.example.pdf', 'perubahan pasal 5', '2025-10-07 07:56:39.583100', NULL, NULL, NULL, NULL, NULL );
+( '2', '4', '4', 'https://contoh.example.pdf', 'perubahan pasal 5', '2025-10-07 07:56:39.583100', NULL, NULL, NULL, NULL, NULL ),
+( '3', '3', '1', 'https://expamle.com/file/peraturan2-VII-2025.pdf', 'Initial version edit', '2025-10-13 04:02:31.511751', NULL, '2025-10-13 11:33:31.000000', NULL, NULL, NULL ),
+( '4', '3', '1', 'https://contoh.example.pdf', 'Peraturan contoh example', '2025-10-13 11:20:47.484674', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -270,16 +266,6 @@ INSERT INTO `menus`(`id`,`name`,`slug`,`parent_id`,`created_at`,`created_by`,`up
 ( '2', 'Document Categories', 'document-categories', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL ),
 ( '3', 'Document Versions', 'document-versions', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL ),
 ( '4', 'Users', 'users', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL );
-COMMIT;
--- ---------------------------------------------------------
-
-
--- Dump data of "migrations" -------------------------------
-BEGIN;
-
-INSERT INTO `migrations`(`id`,`timestamp`,`name`) VALUES 
-( '1', '1699999999999', 'InitSchema1699999999999' ),
-( '2', '1700000000000', 'SeedAdmin1700000000000' );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -326,13 +312,15 @@ INSERT INTO `users`(`id`,`name`,`email`,`password_hash`,`role_id`,`created_at`,`
 ( '9', 'User Satu', 'user1@example.com', '$2b$10$8YqHGZiLUx8ujRRT.YmLDO4PLaSQQokZUCiFTW8wau2doZoueHAEy', '2', '2025-10-03 08:53:26.035119', NULL, NULL, NULL, NULL, NULL ),
 ( '11', 'User Dua', 'user2@example.com', '$2b$10$EQ.OAHQfZmD4suUOT28iee4ZC.fz8NuXH2eg8XSRrk5qQYClpJGCO', '2', '2025-10-03 08:53:40.538323', NULL, NULL, NULL, NULL, NULL ),
 ( '12', 'User Tiga', 'user3@example.com', '$2b$10$3rwPsVsWyMTE4hhWAgRdU.UvcaBaqMtO2KPSvGP.oITiKwfQfMgKO', '2', '2025-10-03 08:53:53.452457', NULL, NULL, NULL, NULL, NULL ),
-( '15', 'Test User', 'test@example.com', '$2b$10$fm8Ing9tJ8mgb.lrsZQwPeAoXfOmwOB29YXL2drJf.AsTYimF17qW', '2', '2025-10-03 09:12:39.839020', NULL, NULL, NULL, NULL, NULL );
+( '15', 'Test User', 'test@example.com', '$2b$10$fm8Ing9tJ8mgb.lrsZQwPeAoXfOmwOB29YXL2drJf.AsTYimF17qW', '2', '2025-10-03 09:12:39.839020', NULL, NULL, NULL, NULL, NULL ),
+( '16', 'One Googledit Kedua', 'onedit@example.com', '$2b$10$hglmhr.aOmmIUpN6jWP8Eu.Wu7D2hqEo4VPN.5a0hNd88ToFFbvsO', '2', '2025-10-10 02:31:06.339036', NULL, '2025-10-10 02:36:56.000000', NULL, NULL, NULL ),
+( '17', 'User Mimi', 'usermimi@gmail.com', '$2b$10$ag70KpZKfkoGZj2P.e3nCO4iD6d18vJlGn4ldF.BS4C5Ax2Ocn5si', '2', '2025-10-16 11:38:13.802745', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
 
--- CREATE INDEX "fk_audit_user" --------------------------------
-CREATE INDEX `fk_audit_user` USING BTREE ON `audit_logs`( `user_id` );
+-- CREATE INDEX "fk_audit_logs_user" ---------------------------
+CREATE INDEX `fk_audit_logs_user` USING BTREE ON `audit_logs`( `user_id` );
 -- -------------------------------------------------------------
 
 
@@ -376,9 +364,9 @@ CREATE INDEX `fk_users_role` USING BTREE ON `users`( `role_id` );
 -- -------------------------------------------------------------
 
 
--- CREATE LINK "fk_audit_user" ---------------------------------
+-- CREATE LINK "fk_audit_logs_user" ----------------------------
 ALTER TABLE `audit_logs`
-	ADD CONSTRAINT `fk_audit_user` FOREIGN KEY ( `user_id` )
+	ADD CONSTRAINT `fk_audit_logs_user` FOREIGN KEY ( `user_id` )
 	REFERENCES `users`( `id` )
 	ON DELETE Cascade
 	ON UPDATE No Action;
