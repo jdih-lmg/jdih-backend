@@ -12,6 +12,7 @@ import {
 import { ValidationService } from 'src/common/validation.service';
 import { User } from 'src/entities/users.entity';
 import { DocumentQueryDto, documentQuerySchema } from './dto/document-query.dto';
+import { AuditAction, AuditLogsService } from 'src/audit-logs/audit-logs.service';
 
 @Injectable()
 export class DocumentsService {
@@ -19,6 +20,7 @@ export class DocumentsService {
     @InjectRepository(Document) private documentRepo: Repository<Document>,
     @InjectRepository(DocumentCategory) private categoryRepo: Repository<DocumentCategory>,
     @InjectRepository(User) private userRepo: Repository<User>,
+    private readonly auditLogsService: AuditLogsService,
     private readonly validation: ValidationService,
   ) {}
 
@@ -138,7 +140,18 @@ export class DocumentsService {
       created_by: userId || null,
     });
 
-    return this.documentRepo.save(doc);
+    const saved = this.documentRepo.save(doc);
+
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.CREATE,
+      'Document',
+      (await saved).id,
+      null,
+      saved,
+    );
+
+    return saved;
   }
 
   // update document by id
@@ -147,21 +160,38 @@ export class DocumentsService {
     data: UpdateDocumentDto,
     userId?: number,
   ): Promise<Document> {
-    const document = await this.getDocumentByIdService(id);
+    const target = await this.getDocumentByIdService(id);
 
     if (data.category_id) {
-      document.category = await this.categoryRepo.findOne({ where: { id: data.category_id } });
+      target.category = await this.categoryRepo.findOne({ where: { id: data.category_id } });
     }
 
     if (data.verified_by) {
-      document.verified_by = await this.userRepo.findOne({ where: { id: data.verified_by } });
+      target.verified_by = await this.userRepo.findOne({ where: { id: data.verified_by } });
     }
 
     const dto = this.validation.validate(updateDocumentSchema, data);
 
-    Object.assign(document, { ...dto, updated_by: userId || null });
+    const oldData = JSON.parse(JSON.stringify(target)) as Document;
 
-    return this.documentRepo.save(document);
+    Object.assign(target, dto);
+
+    if (userId !== undefined) {
+      target.updated_by = userId;
+    }
+
+    const updated = await this.documentRepo.save(target);
+
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.UPDATE,
+      'Document',
+      updated.id,
+      oldData,
+      updated,
+    );
+
+    return updated;
   }
 
   // delete document by id
@@ -171,9 +201,18 @@ export class DocumentsService {
     document.deleted_by = userId || null;
 
     await this.documentRepo.save(document);
-    await this.documentRepo.softDelete(id);
+    const deleted = this.documentRepo.softDelete(id);
 
-    return document;
+    await this.auditLogsService.logAction(
+      { id: userId || 0 },
+      AuditAction.DELETE,
+      'Document',
+      id,
+      document,
+      null,
+    );
+
+    return deleted.then(() => document);
   }
 
   // get all deleted document

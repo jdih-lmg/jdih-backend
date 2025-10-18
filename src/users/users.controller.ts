@@ -16,6 +16,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { RoleEnum } from 'src/entities/roles.entity';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -44,7 +45,6 @@ export class UsersController {
 
   // Get all users
   @Get()
-  @Roles(RoleEnum.USER)
   async getAllUserController() {
     const data = await this.userService.getAllUserService();
 
@@ -69,8 +69,12 @@ export class UsersController {
 
   // Update user by id
   @Put(':id')
-  async updateUserController(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
-    const user = await this.userService.updateUserService(id, dto);
+  async updateUserController(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+    @CurrentUser('userId') userId: number,
+  ) {
+    const user = await this.userService.updateUserService(id, dto, userId);
 
     return {
       message: `Berhasil mengupdate user id ${id}`,
@@ -81,8 +85,12 @@ export class UsersController {
 
   // Delete user by id (soft delete)
   @Delete(':id')
-  async deleteUserController(@Param('id', ParseIntPipe) id: number) {
-    const user = await this.userService.deleteUserService(id);
+  @Roles(RoleEnum.ADMIN)
+  async deleteUserController(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('userId') userId: number,
+  ) {
+    const user = await this.userService.deleteUserService(id, userId);
 
     return {
       message: `Berhasil menandai user id ${id} sebagai terhapus`,
@@ -112,6 +120,7 @@ export class UsersController {
 
   // Restore user yang soft deleted
   @Patch(':id/restore')
+  @Roles(RoleEnum.ADMIN)
   async restoreUser(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.restoreUserService(id);
     return {
