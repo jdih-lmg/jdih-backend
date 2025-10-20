@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -20,8 +21,23 @@ export class AuthController {
   // login user
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() body: LoginDto) {
-    return this.authService.login(body);
+  async login(@Body() body: LoginDto, @Req() req: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.authService.login(body, req);
+  }
+
+  // logout user
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logout(@CurrentUser() user: any, @Req() req: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await this.authService.logout(user, req);
+
+    return {
+      message: 'Logout Berhasil',
+      success: true,
+    };
   }
 
   // Endpoint untuk melihat payload user dari JWT (debug & client fetch profil cepat)

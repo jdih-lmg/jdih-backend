@@ -8,6 +8,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { ValidationService } from 'src/common/validation.service';
 import { Role } from 'src/entities/roles.entity';
+import { AuditLogsModule } from 'src/audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { Role } from 'src/entities/roles.entity';
       secret: process.env.JWT_SECRET || 'kunci_rahasia_jwt',
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1d' },
     }),
+    AuditLogsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, ValidationService],

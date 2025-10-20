@@ -9,6 +9,7 @@ import { LoginDto, LoginSchema } from './dto/login.dto';
 import { RegisterDto, RegisterSchema } from './dto/register.dto';
 import { ConfigService } from '@nestjs/config';
 import { Role } from 'src/entities/roles.entity';
+import { AuditAction, AuditLogsService } from 'src/audit-logs/audit-logs.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     private readonly validation: ValidationService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   // check validasi user dan password
@@ -75,7 +77,7 @@ export class AuthService {
   }
 
   // login user
-  async login(data: LoginDto) {
+  async login(data: LoginDto, req?: { ip?: string; headers?: { 'user-agent'?: string } }) {
     // Normalisasi email (trim + lowercase) sebelum parsing zod
     const normalizedInput: LoginDto = {
       ...data,
@@ -92,11 +94,24 @@ export class AuthService {
     }
 
     const isValid = await bcrypt.compare(dto.password, user.password_hash);
+
     if (!isValid) {
       throw new UnauthorizedException('Email atau password salah');
     }
 
     const token = await this.signToken(user.id, user.email);
+
+    await this.auditLogsService.logAction(
+      { id: user.id },
+      AuditAction.LOGIN,
+      'Auth',
+      user.id,
+      null,
+      {
+        ip: req?.ip || null,
+        user_agent: (req?.headers?.['user-agent'] as string) || null,
+      },
+    );
 
     return {
       message: 'Login berhasil',
@@ -123,5 +138,36 @@ export class AuthService {
     };
 
     return this.jwtService.signAsync(payload);
+  }
+
+  // logout user
+  async logout(user: any, req: { ip?: string; headers?: { 'user-agent'?: string } }) {
+    if (
+      !user ||
+      typeof user !== 'object' ||
+      !('userId' in user) ||
+      !(user as { userId: number }).userId
+    ) {
+      throw new UnauthorizedException('token tidak valid atau user tidak ditemukan');
+    }
+
+    const typedUser = user as { userId: number };
+
+    await this.auditLogsService.logAction(
+      { id: typedUser.userId },
+      AuditAction.LOGOUT,
+      'Auth',
+      typedUser.userId,
+      null,
+      {
+        ip: req?.ip || null,
+        user_agent: (req?.headers?.['user-agent'] as string) || null,
+      },
+    );
+
+    return {
+      message: 'Logout berhasil',
+      success: true,
+    };
   }
 }
