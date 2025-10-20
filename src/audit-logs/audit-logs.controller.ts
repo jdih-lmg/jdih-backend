@@ -32,4 +32,49 @@ export class AuditLogsController {
       end_date: end_date ? new Date(end_date) : undefined,
     });
   }
+
+  // get audit log by id
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(RoleEnum.ADMIN)
+  async getAuditLogById(@Query('id') id: string) {
+    const res = await this.auditLogsService.getAuditLogById(parseInt(id));
+
+    return {
+      message: 'Audit log berhasil diambil',
+      success: true,
+      res,
+    };
+  }
+
+  // get audit log by user id
+  @Get('user/:user_id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(RoleEnum.ADMIN)
+  async getAuditLogsByUserId(@Query('user_id') user_id: string) {
+    const res = await this.auditLogsService.getAuditLogsByUserId(parseInt(user_id));
+
+    return {
+      message: 'Audit logs berhasil diambil',
+      success: true,
+      res,
+    };
+  }
+
+  // get audit logs by entity id
+  @Get('entity/:entity_id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(RoleEnum.ADMIN)
+  async getAuditLogsByEntityId(
+    @Query('entity') entity: string,
+    @Query('entity_id') entity_id: number,
+  ) {
+    const res = await this.auditLogsService.getAuditLogsByEntityId(entity, entity_id);
+
+    return {
+      message: 'Audit logs berhasil diambil',
+      success: true,
+      res,
+    };
+  }
 }

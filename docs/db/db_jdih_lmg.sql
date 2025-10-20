@@ -25,7 +25,8 @@ CREATE TABLE `actions`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
+ENGINE = InnoDB
+AUTO_INCREMENT = 8;
 -- -------------------------------------------------------------
 
 
@@ -42,7 +43,8 @@ CREATE TABLE `audit_logs`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
+ENGINE = InnoDB
+AUTO_INCREMENT = 4;
 -- -------------------------------------------------------------
 
 
@@ -61,7 +63,7 @@ CREATE TABLE `document_categories`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 3;
+AUTO_INCREMENT = 7;
 -- -------------------------------------------------------------
 
 
@@ -82,7 +84,7 @@ CREATE TABLE `document_versions`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 2;
+AUTO_INCREMENT = 4;
 -- -------------------------------------------------------------
 
 
@@ -134,20 +136,8 @@ CREATE TABLE `menus`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
--- -------------------------------------------------------------
-
-
--- CREATE TABLE "migrations" -----------------------------------
-CREATE TABLE `migrations`( 
-	`id` Int( 0 ) AUTO_INCREMENT NOT NULL,
-	`timestamp` BigInt( 0 ) NOT NULL,
-	`name` VarChar( 255 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-	PRIMARY KEY ( `id` ) )
-CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 2;
+AUTO_INCREMENT = 4;
 -- -------------------------------------------------------------
 
 
@@ -167,7 +157,8 @@ CREATE TABLE `role_menu_permissions`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
-ENGINE = InnoDB;
+ENGINE = InnoDB
+AUTO_INCREMENT = 19;
 -- -------------------------------------------------------------
 
 
@@ -208,7 +199,7 @@ CREATE TABLE `users`(
 CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 15;
+AUTO_INCREMENT = 17;
 -- -------------------------------------------------------------
 
 
@@ -216,10 +207,12 @@ AUTO_INCREMENT = 15;
 BEGIN;
 
 INSERT INTO `actions`(`id`,`name`,`description`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
-( '1', 'view', 'Read records', '2025-10-08 06:17:38.140720', NULL, NULL, NULL, NULL, NULL ),
-( '2', 'create', 'Create record', '2025-10-08 06:17:38.140720', NULL, NULL, NULL, NULL, NULL ),
-( '3', 'update', 'Update record', '2025-10-08 06:17:38.140720', NULL, NULL, NULL, NULL, NULL ),
-( '4', 'delete', 'Delete record', '2025-10-08 06:17:38.140720', NULL, NULL, NULL, NULL, NULL );
+( '1', 'create', 'Membuat data baru', '2025-10-20 09:05:43.000000', NULL, NULL, NULL, NULL, NULL ),
+( '2', 'read', 'Melihat data', '2025-10-20 09:05:43.000000', NULL, NULL, NULL, NULL, NULL ),
+( '3', 'update', 'Mengubah data', '2025-10-20 09:05:43.000000', NULL, NULL, NULL, NULL, NULL ),
+( '4', 'delete', 'Menghapus data', '2025-10-20 09:05:43.000000', NULL, NULL, NULL, NULL, NULL ),
+( '5', 'verify', 'Memverifikasi dokumen', '2025-10-20 09:05:43.000000', NULL, NULL, NULL, NULL, NULL ),
+( '6', 'publish', 'Mempublikasikan konten', '2025-10-20 09:05:43.000000', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -235,7 +228,10 @@ INSERT INTO `document_categories`(`id`,`name`,`description`,`created_at`,`create
 ( '1', 'Peraturan Daerah', 'Kategori untuk Perda dan turunannya', '2025-10-07 08:00:14.163062', NULL, NULL, NULL, NULL, NULL ),
 ( '2', 'Peraturan Bupati', 'Kategori untuk Perbup dan turunannya', '2025-10-07 08:00:50.217063', NULL, NULL, NULL, NULL, NULL ),
 ( '3', 'Test Category Edit', 'Testing kategori Edit', '2025-10-08 05:55:10.563214', NULL, '2025-10-08 05:56:58.000000', NULL, NULL, NULL ),
-( '4', 'Test', 'Testing Cat', '2025-10-08 05:57:36.756715', NULL, '2025-10-08 06:00:16.000000', NULL, NULL, NULL );
+( '4', 'Test', 'Testing Cat', '2025-10-08 05:57:36.756715', NULL, '2025-10-17 02:39:29.000000', NULL, NULL, '9' ),
+( '5', 'Peraturen Hukum Efisien', 'Peraturan Tentang Hukum Efisiensi Kabupaten.', '2025-10-12 11:22:28.969865', NULL, '2025-10-12 18:23:25.174000', NULL, NULL, NULL ),
+( '6', 'Peraturen Pondok Pesantren Fix', 'Peraturan tentang pondok pesantren di kabupaten Lamongan.', '2025-10-16 14:23:30.747138', '1', '2025-10-17 02:40:43.000000', '9', NULL, '9' ),
+( '7', 'Peraturen Produsen Minuman Herbal', 'Peraturan tentang produsen minuman herbal di kabupaten Lamongan.', '2025-10-17 09:38:28.376759', '1', '2025-10-17 10:10:33.000000', '1', NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -245,7 +241,9 @@ BEGIN;
 
 INSERT INTO `document_versions`(`id`,`document_id`,`version_number`,`file_url`,`notes`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
 ( '1', '4', '2', 'https://contoh.example.pdf', 'versi awal amandemen', '2025-10-07 05:18:43.489573', NULL, NULL, NULL, NULL, NULL ),
-( '2', '4', '4', 'https://contoh.example.pdf', 'perubahan pasal 5', '2025-10-07 07:56:39.583100', NULL, NULL, NULL, NULL, NULL );
+( '2', '4', '4', 'https://contoh.example.pdf', 'perubahan pasal 5', '2025-10-07 07:56:39.583100', NULL, NULL, NULL, NULL, NULL ),
+( '3', '3', '1', 'https://expamle.com/file/peraturan2-VII-2025.pdf', 'Initial version edit', '2025-10-13 04:02:31.511751', NULL, '2025-10-13 11:33:31.000000', NULL, NULL, NULL ),
+( '4', '3', '1', 'https://contoh.example.pdf', 'Peraturan contoh example', '2025-10-13 11:20:47.484674', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -266,20 +264,12 @@ COMMIT;
 BEGIN;
 
 INSERT INTO `menus`(`id`,`name`,`slug`,`parent_id`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
-( '1', 'Documents', 'documents', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL ),
-( '2', 'Document Categories', 'document-categories', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL ),
-( '3', 'Document Versions', 'document-versions', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL ),
-( '4', 'Users', 'users', NULL, '2025-10-08 06:19:13.200553', NULL, NULL, NULL, NULL, NULL );
-COMMIT;
--- ---------------------------------------------------------
-
-
--- Dump data of "migrations" -------------------------------
-BEGIN;
-
-INSERT INTO `migrations`(`id`,`timestamp`,`name`) VALUES 
-( '1', '1699999999999', 'InitSchema1699999999999' ),
-( '2', '1700000000000', 'SeedAdmin1700000000000' );
+( '1', 'Dashboard', 'dashboard', NULL, '2025-10-20 09:06:16.000000', NULL, NULL, NULL, NULL, NULL ),
+( '2', 'Dokumen', 'dokumen', NULL, '2025-10-20 09:06:16.000000', NULL, NULL, NULL, NULL, NULL ),
+( '3', 'Berita', 'berita', NULL, '2025-10-20 09:06:16.000000', NULL, NULL, NULL, NULL, NULL ),
+( '4', 'Kategori', 'kategori', '2', '2025-10-20 09:06:16.000000', NULL, NULL, NULL, NULL, NULL ),
+( '5', 'Jenis Dokumen', 'jenis-dokumen', '2', '2025-10-20 09:06:16.000000', NULL, NULL, NULL, NULL, NULL ),
+( '6', 'Pengguna', 'pengguna', NULL, '2025-10-20 09:06:16.000000', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -288,22 +278,65 @@ COMMIT;
 BEGIN;
 
 INSERT INTO `role_menu_permissions`(`id`,`role_id`,`menu_id`,`action_id`,`is_allowed`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
-( '1', '1', '3', '1', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '2', '1', '2', '1', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '3', '1', '1', '1', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '4', '1', '3', '2', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '5', '1', '2', '2', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '6', '1', '1', '2', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '7', '1', '3', '3', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '8', '1', '2', '3', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '9', '1', '1', '3', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '10', '1', '3', '4', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '11', '1', '2', '4', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '12', '1', '1', '4', '1', '2025-10-08 06:19:51.671861', NULL, NULL, NULL, NULL, NULL ),
-( '16', '2', '1', '1', '1', '2025-10-08 06:20:41.952393', NULL, NULL, NULL, NULL, NULL ),
-( '17', '2', '1', '2', '0', '2025-10-08 06:20:41.952393', NULL, NULL, NULL, NULL, NULL ),
-( '18', '2', '1', '3', '0', '2025-10-08 06:20:41.952393', NULL, NULL, NULL, NULL, NULL ),
-( '19', '2', '1', '4', '0', '2025-10-08 06:20:41.952393', NULL, NULL, NULL, NULL, NULL );
+( '20', '1', '5', '1', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '21', '1', '4', '1', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '22', '1', '6', '1', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '23', '1', '3', '1', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '24', '1', '2', '1', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '25', '1', '1', '1', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '26', '1', '5', '2', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '27', '1', '4', '2', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '28', '1', '6', '2', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '29', '1', '3', '2', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '30', '1', '2', '2', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '31', '1', '1', '2', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '32', '1', '5', '3', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '33', '1', '4', '3', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '34', '1', '6', '3', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '35', '1', '3', '3', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '36', '1', '2', '3', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '37', '1', '1', '3', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '38', '1', '5', '4', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '39', '1', '4', '4', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '40', '1', '6', '4', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '41', '1', '3', '4', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '42', '1', '2', '4', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '43', '1', '1', '4', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '44', '1', '5', '5', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '45', '1', '4', '5', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '46', '1', '6', '5', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '47', '1', '3', '5', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '48', '1', '2', '5', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '49', '1', '1', '5', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '50', '1', '5', '6', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '51', '1', '4', '6', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '52', '1', '6', '6', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '53', '1', '3', '6', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '54', '1', '2', '6', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '55', '1', '1', '6', '1', '2025-10-20 09:06:48.000000', NULL, NULL, NULL, NULL, NULL ),
+( '83', '2', '2', '5', '1', '2025-10-20 09:07:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '84', '2', '2', '2', '1', '2025-10-20 09:07:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '85', '2', '4', '5', '1', '2025-10-20 09:07:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '86', '2', '4', '2', '1', '2025-10-20 09:07:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '87', '2', '5', '5', '1', '2025-10-20 09:07:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '88', '2', '5', '2', '1', '2025-10-20 09:07:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '90', '3', '5', '1', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '91', '3', '4', '1', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '92', '3', '2', '1', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '93', '3', '5', '2', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '94', '3', '4', '2', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '95', '3', '2', '2', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '96', '3', '5', '3', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '97', '3', '4', '3', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '98', '3', '2', '3', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '99', '3', '5', '4', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '100', '3', '4', '4', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '101', '3', '2', '4', '1', '2025-10-20 09:07:13.000000', NULL, NULL, NULL, NULL, NULL ),
+( '105', '4', '3', '1', '1', '2025-10-20 09:07:22.000000', NULL, NULL, NULL, NULL, NULL ),
+( '106', '4', '3', '2', '1', '2025-10-20 09:07:22.000000', NULL, NULL, NULL, NULL, NULL ),
+( '107', '4', '3', '3', '1', '2025-10-20 09:07:22.000000', NULL, NULL, NULL, NULL, NULL ),
+( '108', '4', '3', '4', '1', '2025-10-20 09:07:22.000000', NULL, NULL, NULL, NULL, NULL ),
+( '109', '4', '3', '6', '1', '2025-10-20 09:07:22.000000', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -312,8 +345,10 @@ COMMIT;
 BEGIN;
 
 INSERT INTO `roles`(`id`,`name`,`description`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
-( '1', 'admin', 'Administrator', '2025-09-30 14:13:02.000000', NULL, NULL, NULL, NULL, NULL ),
-( '2', 'user', 'Regular user', '2025-09-30 14:13:02.000000', NULL, NULL, NULL, NULL, NULL );
+( '1', 'admin', 'Administrator dengan akses penuh', '2025-10-20 09:03:43.000000', NULL, NULL, NULL, NULL, NULL ),
+( '2', 'verifikator', 'Memverifikasi dokumen hukum', '2025-10-20 09:03:43.000000', NULL, NULL, NULL, NULL, NULL ),
+( '3', 'petugas_dokumen', 'Mengelola dokumen hukum', '2025-10-20 09:03:43.000000', NULL, NULL, NULL, NULL, NULL ),
+( '4', 'petugas_konten', 'Mengelola konten berita & informasi', '2025-10-20 09:03:43.000000', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
@@ -322,17 +357,16 @@ COMMIT;
 BEGIN;
 
 INSERT INTO `users`(`id`,`name`,`email`,`password_hash`,`role_id`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
-( '1', 'Admin', 'admin@jdih.com', '$2b$10$A3B07LTSg7lyZiEgbt8WJe2o8WsLa/Lb/iis2.L6QfbEXeC4hL8JC', '1', '2025-09-30 14:13:02.000000', NULL, NULL, NULL, NULL, NULL ),
-( '9', 'User Satu', 'user1@example.com', '$2b$10$8YqHGZiLUx8ujRRT.YmLDO4PLaSQQokZUCiFTW8wau2doZoueHAEy', '2', '2025-10-03 08:53:26.035119', NULL, NULL, NULL, NULL, NULL ),
-( '11', 'User Dua', 'user2@example.com', '$2b$10$EQ.OAHQfZmD4suUOT28iee4ZC.fz8NuXH2eg8XSRrk5qQYClpJGCO', '2', '2025-10-03 08:53:40.538323', NULL, NULL, NULL, NULL, NULL ),
-( '12', 'User Tiga', 'user3@example.com', '$2b$10$3rwPsVsWyMTE4hhWAgRdU.UvcaBaqMtO2KPSvGP.oITiKwfQfMgKO', '2', '2025-10-03 08:53:53.452457', NULL, NULL, NULL, NULL, NULL ),
-( '15', 'Test User', 'test@example.com', '$2b$10$fm8Ing9tJ8mgb.lrsZQwPeAoXfOmwOB29YXL2drJf.AsTYimF17qW', '2', '2025-10-03 09:12:39.839020', NULL, NULL, NULL, NULL, NULL );
+( '1', 'Admin JDIH', 'admin@jdih.go.id', '$2b$10$7Q5EPHx9t0uF4h6QKfxvIOTnUUlJXKMn7Vdb1PDt3KQfM5VQxD9Qm', '1', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '2', 'Verifikator JDIH', 'verifikator@jdih.go.id', '$2b$10$7Q5EPHx9t0uF4h6QKfxvIOTnUUlJXKMn7Vdb1PDt3KQfM5VQxD9Qm', '2', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '3', 'Petugas Dokumen', 'dokumen@jdih.go.id', '$2b$10$7Q5EPHx9t0uF4h6QKfxvIOTnUUlJXKMn7Vdb1PDt3KQfM5VQxD9Qm', '3', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '4', 'Petugas Konten', 'konten@jdih.go.id', '$2b$10$7Q5EPHx9t0uF4h6QKfxvIOTnUUlJXKMn7Vdb1PDt3KQfM5VQxD9Qm', '4', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 
 
--- CREATE INDEX "fk_audit_user" --------------------------------
-CREATE INDEX `fk_audit_user` USING BTREE ON `audit_logs`( `user_id` );
+-- CREATE INDEX "fk_audit_logs_user" ---------------------------
+CREATE INDEX `fk_audit_logs_user` USING BTREE ON `audit_logs`( `user_id` );
 -- -------------------------------------------------------------
 
 
@@ -376,9 +410,9 @@ CREATE INDEX `fk_users_role` USING BTREE ON `users`( `role_id` );
 -- -------------------------------------------------------------
 
 
--- CREATE LINK "fk_audit_user" ---------------------------------
+-- CREATE LINK "fk_audit_logs_user" ----------------------------
 ALTER TABLE `audit_logs`
-	ADD CONSTRAINT `fk_audit_user` FOREIGN KEY ( `user_id` )
+	ADD CONSTRAINT `fk_audit_logs_user` FOREIGN KEY ( `user_id` )
 	REFERENCES `users`( `id` )
 	ON DELETE Cascade
 	ON UPDATE No Action;
