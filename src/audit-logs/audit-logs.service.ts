@@ -94,7 +94,7 @@ export class AuditLogsService {
   }
 
   // get audit log by id
-  async getAuditLogById(id: number): Promise<AuditLog> {
+  async getAuditLogById(id: number) {
     const log = await this.auditRepo.findOne({
       where: { id },
       relations: ['user'],
@@ -104,18 +104,47 @@ export class AuditLogsService {
       throw new NotFoundException(`Audit log dengan id ${id} tidak ditemukan`);
     }
 
-    return log;
+    return {
+      message: 'Berhasil mengambil log',
+      success: true,
+      data: {
+        id: log.id,
+        action: log.action,
+        entity: log.entity,
+        entity_id: log.entity_id,
+        old_data: log.old_data,
+        new_data: log.new_data,
+        created_at: log.created_at,
+        user: log.user
+          ? {
+              id: log.user.id,
+              name: log.user.name,
+              email: log.user.email,
+            }
+          : null,
+      },
+    };
   }
 
   // get audit logs by user id
-  async getAuditLogsByUserId(user_id: number) {
-    const logs = await this.auditRepo.find({
+  async getAuditLogsByUserId(user_id: number, page = 1, limit = 10) {
+    const [logs, total] = await this.auditRepo.findAndCount({
       where: { user_id },
       relations: ['user'],
       order: { created_at: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
     return {
+      message: 'Berhasil mengambil log berdasarkan user',
+      success: true,
+      meta: {
+        page,
+        limit,
+        total,
+        last_page: Math.ceil(total / limit),
+      },
       data: logs.map((log) => ({
         id: log.id,
         action: log.action,
@@ -136,14 +165,24 @@ export class AuditLogsService {
   }
 
   // get audit logs by entity id
-  async getAuditLogsByEntityId(entity: string, entity_id: number) {
-    const logs = await this.auditRepo.find({
+  async getAuditLogsByEntityId(entity: string, entity_id: number, page = 1, limit = 10) {
+    const [logs, total] = await this.auditRepo.findAndCount({
       where: { entity, entity_id },
       relations: ['user'],
       order: { created_at: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
     return {
+      message: 'Berhasil mengambil log berdasarkan user',
+      success: true,
+      meta: {
+        page,
+        limit,
+        total,
+        last_page: Math.ceil(total / limit),
+      },
       data: logs.map((log) => ({
         id: log.id,
         action: log.action,

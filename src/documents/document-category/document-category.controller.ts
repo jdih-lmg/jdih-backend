@@ -28,7 +28,7 @@ export class DocumentCategoryController {
 
   // get all document categories with pagination or search
   @Get('list')
-  @Permission('kategori', 'read')
+  @Permission('dokumen-kategori', 'read')
   async getAllDocumentCategoriesWithPaginationController(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -39,7 +39,7 @@ export class DocumentCategoryController {
 
   // get all document categories
   @Get()
-  @Permission('kategori', 'read')
+  @Permission('dokumen-kategori', 'read')
   async getAllDocumentCategoriesController() {
     const categories = await this.categoriesService.getAllDocumentCategoriesService();
 
@@ -52,7 +52,7 @@ export class DocumentCategoryController {
 
   // get document category by id
   @Get(':id')
-  @Permission('kategori', 'read')
+  @Permission('dokumen-kategori', 'read')
   async getDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.getDocumentCategoryByIdService(id);
 
@@ -65,7 +65,7 @@ export class DocumentCategoryController {
 
   // create document category
   @Post()
-  @Permission('kategori', 'create')
+  @Permission('dokumen-kategori', 'create')
   async createDocumentCategoryController(
     @Body() dto: CreateDocumentCategoryDto,
     @CurrentUser('userId') userId: number,
@@ -81,7 +81,7 @@ export class DocumentCategoryController {
 
   // update document category by id
   @Put(':id')
-  @Permission('kategori', 'update')
+  @Permission('dokumen-kategori', 'update')
   async updateDocumentCategoryByIdController(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDocumentCategoryDto,
@@ -98,7 +98,7 @@ export class DocumentCategoryController {
 
   // delete document category by id
   @Delete(':id')
-  @Permission('kategori', 'delete')
+  @Permission('dokumen-kategori', 'delete')
   async deleteDocumentCategoryByIdController(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('userId') userId: number,
@@ -114,7 +114,7 @@ export class DocumentCategoryController {
 
   // get all deleted document categories
   @Get('deleted/list')
-  @Permission('kategori', 'read')
+  @Permission('dokumen-kategori', 'read')
   async getAllDeletedDocumentCategoriesController() {
     const deleted = await this.categoriesService.getAllDeletedDocumentCategoriesService();
 
@@ -127,7 +127,7 @@ export class DocumentCategoryController {
 
   // restore deleted document category by id
   @Patch('restore/:id')
-  @Permission('kategori', 'update')
+  @Permission('dokumen-kategori', 'update')
   async restoreDeletedDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.restoreDeletedDocumentCategoryService(id);
 

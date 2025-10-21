@@ -17,6 +17,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { DocumentsModule } from './documents/documents.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
     AuthModule,
     DocumentsModule,
     AuditLogsModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [],
