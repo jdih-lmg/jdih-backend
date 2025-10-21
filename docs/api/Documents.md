@@ -2,7 +2,8 @@
 
 Base URL: `/api/documents`
 
-**Authentication Required:** Ya (semua endpoint)
+**Authentication Required:** Ya (semua endpoint)  
+**Role Required:** ADMIN untuk create/update/delete, USER untuk read
 
 ## Endpoints
 
@@ -54,14 +55,7 @@ Authorization: Bearer <token>
         "id": 1,
         "name": "Admin"
       },
-      "versions": [
-        {
-          "id": 1,
-          "version_number": 1,
-          "file_url": "https://example.com/doc.pdf",
-          "notes": "Versi awal"
-        }
-      ],
+      "versions": [],
       "created_at": "2025-01-15T10:00:00.000Z",
       "updated_at": "2025-01-16T12:00:00.000Z",
       "deleted_at": null
@@ -103,10 +97,10 @@ Authorization: Bearer <token>
       "category": { "id": 1, "name": "Peraturan Daerah" },
       "publisher": "Bagian Hukum",
       "signed_by": "Bupati",
-      "dateSigned": "2025-01-15",
-      "effectiveDate": "2025-02-01",
-      "fileUrl": "https://example.com/doc.pdf",
-      "verificationDate": "2025-01-20T10:00:00.000Z",
+      "date_signed": "2025-01-15",
+      "effective_date": "2025-02-01",
+      "file_url": "https://example.com/doc.pdf",
+      "verification_date": "2025-01-20T10:00:00.000Z",
       "verified_by": { "id": 1, "name": "Admin" },
       "versions": [],
       "created_at": "2025-01-15T10:00:00.000Z",
@@ -153,10 +147,10 @@ Authorization: Bearer <token>
     },
     "publisher": "Bagian Hukum",
     "signed_by": "Bupati",
-    "dateSigned": "2025-01-15",
-    "effectiveDate": "2025-02-01",
-    "fileUrl": "https://example.com/files/perbup-1-2025.pdf",
-    "verificationDate": "2025-01-20T10:00:00.000Z",
+    "date_signed": "2025-01-15",
+    "effective_date": "2025-02-01",
+    "file_url": "https://example.com/files/perbup-1-2025.pdf",
+    "verification_date": "2025-01-20T10:00:00.000Z",
     "verified_by": {
       "id": 1,
       "name": "Admin",
@@ -187,6 +181,8 @@ Authorization: Bearer <token>
 ### 4. POST /api/documents
 
 Membuat dokumen baru.
+
+**Role Required:** ADMIN
 
 **Request Body:**
 
@@ -246,7 +242,8 @@ Content-Type: application/json
     "type": "Peraturan Bupati",
     "year": 2025,
     "status": "draft",
-    "created_at": "2025-01-15T10:00:00.000Z"
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "created_by": 1
   }
 }
 ```
@@ -256,6 +253,8 @@ Content-Type: application/json
 ### 5. PUT /api/documents/:id
 
 Memperbarui dokumen berdasarkan ID.
+
+**Role Required:** ADMIN
 
 **Request Body:** (semua field optional)
 
@@ -303,7 +302,8 @@ Content-Type: application/json
     "id": 1,
     "title": "Peraturan Bupati No. 1 Tahun 2025 (Updated)",
     "status": "published",
-    "updated_at": "2025-01-15T11:00:00.000Z"
+    "updated_at": "2025-01-15T11:00:00.000Z",
+    "updated_by": 1
   }
 }
 ```
@@ -313,6 +313,8 @@ Content-Type: application/json
 ### 6. DELETE /api/documents/:id
 
 Soft delete dokumen berdasarkan ID.
+
+**Role Required:** ADMIN
 
 **Contoh Request:**
 
@@ -330,8 +332,21 @@ Authorization: Bearer <token>
   "data": {
     "id": 1,
     "title": "Peraturan Bupati No. 1 Tahun 2025",
-    "deleted_at": "2025-01-15T12:00:00.000Z"
+    "deleted_at": "2025-01-15T12:00:00.000Z",
+    "deleted_by": 1
   }
+}
+```
+
+**Error 404:**
+
+```json
+{
+  "message": "Document dengan id 1 sudah dihapus",
+  "success": false,
+  "data": null,
+  "path": "/api/documents/1",
+  "timestamp": "2025-01-15T12:00:00.000Z"
 }
 ```
 
@@ -340,6 +355,8 @@ Authorization: Bearer <token>
 ### 7. GET /api/documents/deleted/list
 
 Mendapatkan semua dokumen yang sudah di-soft delete.
+
+**Role Required:** ADMIN
 
 **Contoh Request:**
 
@@ -358,7 +375,11 @@ Authorization: Bearer <token>
     {
       "id": 3,
       "title": "Peraturan Bupati No. 1 Tahun 2025",
-      "deleted_at": "2025-01-15T12:00:00.000Z"
+      "number": "1",
+      "type": "Peraturan Bupati",
+      "year": 2025,
+      "deleted_at": "2025-01-15T12:00:00.000Z",
+      "deleted_by": 1
     }
   ]
 }
@@ -369,6 +390,8 @@ Authorization: Bearer <token>
 ### 8. PATCH /api/documents/restore/:id
 
 Mengembalikan dokumen yang sudah di-soft delete.
+
+**Role Required:** ADMIN
 
 **Contoh Request:**
 
@@ -416,3 +439,12 @@ draft → verified → published → archived
 - **verified**: Dokumen sudah diverifikasi oleh admin
 - **published**: Dokumen dipublikasikan untuk publik
 - **archived**: Dokumen diarsipkan (tidak aktif)
+
+## Audit Logs
+
+Setiap operasi CREATE, UPDATE, DELETE pada dokumen akan tercatat di **Audit Logs** dengan informasi:
+
+- User yang melakukan aksi
+- Timestamp
+- Data lama dan data baru (untuk UPDATE)
+- Entity: `Document`

@@ -10,34 +10,49 @@ import { RegisterDto, RegisterSchema } from './dto/register.dto';
 import { ConfigService } from '@nestjs/config';
 import { Role } from 'src/entities/roles.entity';
 import { AuditAction, AuditLogsService } from 'src/audit-logs/audit-logs.service';
+import { AuthUser } from './auth-user.interface';
+import { RoleMenuPermission } from 'src/entities/role-menu-permissions.entity';
+import { Menu } from 'src/entities/menus.entity';
+import { Action } from 'src/entities/actions.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(Role) private readonly roleRepo: Repository<Role>,
+    @InjectRepository(RoleMenuPermission)
+    private readonly permissionRepo: Repository<RoleMenuPermission>,
+    @InjectRepository(Menu) private readonly menuRepo: Repository<Menu>,
+    @InjectRepository(Action) private readonly actionRepo: Repository<Action>,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     private readonly validation: ValidationService,
     private readonly auditLogsService: AuditLogsService,
   ) {}
 
-  // check validasi user dan password
-  async validateUser(userId: number): Promise<User | null> {
-    return this.userRepo.findOne({
+  async validateUser(userId: number): Promise<AuthUser | null> {
+    const user = await this.userRepo.findOne({
       where: { id: userId },
       relations: ['role'],
     });
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: {
+        id: user.role?.id ?? 0,
+        name: user.role?.name ?? '',
+      },
+    };
   }
 
-  // register user
   async register(data: RegisterDto) {
     const dto = this.validation.validate(RegisterSchema, data);
 
     const existingUser = await this.userRepo.findOne({ where: { email: dto.email } });
-    if (existingUser) {
-      throw new ConflictException('Email sudah terdaftar');
-    }
+    if (existingUser) throw new ConflictException('Email sudah terdaftar');
 
     const hashed = await bcrypt.hash(
       dto.password,
@@ -45,10 +60,8 @@ export class AuthService {
     );
 
     const defaultRole = await this.roleRepo.findOne({ where: { name: 'user' } });
-
-    if (!defaultRole) {
+    if (!defaultRole)
       throw new ConflictException('Role default tidak ditemukan, silakan hubungi admin');
-    }
 
     const user = this.userRepo.create({
       name: dto.name,
@@ -58,8 +71,7 @@ export class AuthService {
     });
 
     await this.userRepo.save(user);
-
-    const token = await this.signToken(user.id, user.email);
+    const token = await this.signToken(user.id, user.email, user.role);
 
     return {
       message: 'Registrasi berhasil',
@@ -68,38 +80,26 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
-          ? { id: user.role.id, name: user.role.name, description: user.role.description }
-          : null,
+        role: { id: defaultRole.id, name: defaultRole.name },
         access_token: token,
       },
     };
   }
 
-  // login user
   async login(data: LoginDto, req?: { ip?: string; headers?: { 'user-agent'?: string } }) {
-    // Normalisasi email (trim + lowercase) sebelum parsing zod
     const normalizedInput: LoginDto = {
       ...data,
       email: (data.email || '').trim().toLowerCase(),
-      password: data.password,
-    } as LoginDto;
+    };
 
     const dto = this.validation.validate(LoginSchema, normalizedInput);
 
     const user = await this.userRepo.findOne({ where: { email: dto.email }, relations: ['role'] });
-
-    if (!user) {
+    if (!user || !(await bcrypt.compare(dto.password, user.password_hash))) {
       throw new UnauthorizedException('Email atau password salah');
     }
 
-    const isValid = await bcrypt.compare(dto.password, user.password_hash);
-
-    if (!isValid) {
-      throw new UnauthorizedException('Email atau password salah');
-    }
-
-    const token = await this.signToken(user.id, user.email);
+    const token = await this.signToken(user.id, user.email, user.role);
 
     await this.auditLogsService.logAction(
       { id: user.id },
@@ -109,7 +109,7 @@ export class AuthService {
       null,
       {
         ip: req?.ip || null,
-        user_agent: (req?.headers?.['user-agent'] as string) || null,
+        user_agent: req?.headers?.['user-agent'] || null,
       },
     );
 
@@ -120,54 +120,94 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
-          ? { id: user.role.id, name: user.role.name, description: user.role.description }
-          : null,
+        role: { id: user.role?.id ?? 0, name: user.role?.name ?? '' },
         createdAt: user.created_at,
-        updatedAt: user.updated_at || undefined,
+        updatedAt: user.updated_at,
       },
       access_token: token,
     };
   }
 
-  private async signToken(userId: number, email: string): Promise<string> {
+  private async signToken(userId: number, email: string, role?: Role): Promise<string> {
     const payload = {
       sub: userId,
       email,
-      role: (await this.validateUser(userId))?.role?.name || null,
+      role: role ? { id: role.id, name: role.name } : undefined,
     };
-
     return this.jwtService.signAsync(payload);
   }
 
-  // logout user
-  async logout(user: any, req: { ip?: string; headers?: { 'user-agent'?: string } }) {
-    if (
-      !user ||
-      typeof user !== 'object' ||
-      !('userId' in user) ||
-      !(user as { userId: number }).userId
-    ) {
+  async logout(user: AuthUser, req: { ip?: string; headers?: { 'user-agent'?: string } }) {
+    if (!user?.id) {
       throw new UnauthorizedException('token tidak valid atau user tidak ditemukan');
     }
 
-    const typedUser = user as { userId: number };
-
     await this.auditLogsService.logAction(
-      { id: typedUser.userId },
+      { id: user.id },
       AuditAction.LOGOUT,
       'Auth',
-      typedUser.userId,
+      user.id,
       null,
       {
         ip: req?.ip || null,
-        user_agent: (req?.headers?.['user-agent'] as string) || null,
+        user_agent: req?.headers?.['user-agent'] || null,
       },
     );
 
-    return {
-      message: 'Logout berhasil',
-      success: true,
-    };
+    return { message: 'Logout berhasil', success: true };
+  }
+
+  // get all users with permissions
+  async getAllUsersWithPermissions() {
+    const users = await this.userRepo.find({
+      relations: ['role'],
+      order: { id: 'ASC' },
+    });
+
+    const permissions = await this.permissionRepo.find({
+      relations: ['role', 'menu', 'action'],
+    });
+
+    const rolePermissionMap = new Map<number, { [menu: string]: string[] }>();
+
+    for (const p of permissions) {
+      const roleId = p.role.id;
+
+      if (!rolePermissionMap.has(roleId)) {
+        rolePermissionMap.set(roleId, {});
+      }
+
+      const menuSlug = p.menu.slug;
+      const actionName = p.action.name;
+      const roleEntry = rolePermissionMap.get(roleId)!;
+
+      if (!roleEntry[menuSlug]) {
+        roleEntry[menuSlug] = [];
+      }
+
+      roleEntry[menuSlug].push(actionName);
+    }
+
+    // format hasil tiap user
+    const result = users.map((user) => {
+      const perms = user.role?.id ? rolePermissionMap.get(user.role.id) || {} : {};
+      const formattedPerms = Object.entries(perms).map(([menu, actions]) => ({
+        menu,
+        actions,
+      }));
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: {
+          id: user.role?.id ?? 0,
+          name: user.role?.name ?? '',
+        },
+        permissions: formattedPerms,
+      };
+    });
+
+    return result;
   }
 }

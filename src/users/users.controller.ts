@@ -12,14 +12,11 @@ import {
 import { UsersService } from './users.service';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import { User } from 'src/entities/users.entity';
-import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { RoleEnum } from 'src/entities/roles.entity';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
@@ -85,7 +82,6 @@ export class UsersController {
 
   // Delete user by id (soft delete)
   @Delete(':id')
-  @Roles(RoleEnum.ADMIN)
   async deleteUserController(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('userId') userId: number,
@@ -120,7 +116,6 @@ export class UsersController {
 
   // Restore user yang soft deleted
   @Patch(':id/restore')
-  @Roles(RoleEnum.ADMIN)
   async restoreUser(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.restoreUserService(id);
     return {

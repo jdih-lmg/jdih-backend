@@ -11,10 +11,21 @@ import { DocumentCategoryService } from './document-category/document-category.s
 import { DocumentCategoryController } from './document-category/document-category.controller';
 import { User } from 'src/entities/users.entity';
 import { AuditLogsModule } from 'src/audit-logs/audit-logs.module';
+import { Menu } from 'src/entities/menus.entity';
+import { RoleMenuPermission } from 'src/entities/role-menu-permissions.entity';
+import { Action } from 'src/entities/actions.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Document, DocumentVersion, DocumentCategory, User]),
+    TypeOrmModule.forFeature([
+      Document,
+      DocumentVersion,
+      DocumentCategory,
+      User,
+      Menu,
+      RoleMenuPermission,
+      Action,
+    ]),
     AuditLogsModule,
   ],
   controllers: [DocumentsController, DocumentVersionsController, DocumentCategoryController],

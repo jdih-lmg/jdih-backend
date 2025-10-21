@@ -2,7 +2,8 @@
 
 Base URL: `/api/document-versions`
 
-**Authentication Required:** Ya
+**Authentication Required:** Ya  
+**Role Required:** ADMIN untuk create/update/delete, USER untuk read
 
 ## Endpoints
 
@@ -48,7 +49,6 @@ Authorization: Bearer <token>
     }
   ],
   "meta": {
-    "data": "...",
     "total": 10,
     "page": 1,
     "last_page": 1
@@ -197,6 +197,8 @@ Authorization: Bearer <token>
 
 Membuat versi dokumen baru (dengan `document_id` di body).
 
+**Role Required:** ADMIN
+
 **Request Body:**
 
 ```json
@@ -235,7 +237,8 @@ Content-Type: application/json
     "version_number": 3,
     "file_url": "https://example.com/doc-v3.pdf",
     "notes": "Revisi final",
-    "created_at": "2025-01-15T10:00:00.000Z"
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "created_by": 1
   }
 }
 ```
@@ -257,6 +260,8 @@ Content-Type: application/json
 ### 6. POST /api/document-versions/documents/:documentId/versions
 
 Membuat versi dokumen baru (dengan `documentId` di URL).
+
+**Role Required:** ADMIN
 
 **Request Body:**
 
@@ -298,7 +303,8 @@ Content-Type: application/json
       "title": "Peraturan Bupati No. 1 Tahun 2025",
       "abstract": "Peraturan ini mengatur..."
     },
-    "created_at": "2025-01-15T10:00:00.000Z"
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "created_by": 1
   }
 }
 ```
@@ -308,6 +314,8 @@ Content-Type: application/json
 ### 7. PUT /api/document-versions/:id
 
 Memperbarui versi dokumen berdasarkan ID.
+
+**Role Required:** ADMIN
 
 **Request Body:** (semua field optional)
 
@@ -344,7 +352,8 @@ Content-Type: application/json
     "version_number": 2,
     "file_url": "https://example.com/doc-v2-updated.pdf",
     "notes": "Revisi pasal 5 dan 7",
-    "updated_at": "2025-01-15T11:00:00.000Z"
+    "updated_at": "2025-01-15T11:00:00.000Z",
+    "updated_by": 1
   }
 }
 ```
@@ -354,6 +363,8 @@ Content-Type: application/json
 ### 8. DELETE /api/document-versions/:id
 
 Soft delete versi dokumen berdasarkan ID.
+
+**Role Required:** ADMIN
 
 **Contoh Request:**
 
@@ -371,8 +382,21 @@ Authorization: Bearer <token>
   "data": {
     "id": 1,
     "version_number": 2,
-    "deleted_at": "2025-01-15T12:00:00.000Z"
+    "deleted_at": "2025-01-15T12:00:00.000Z",
+    "deleted_by": 1
   }
+}
+```
+
+**Error 404:**
+
+```json
+{
+  "message": "Versi dokumen dengan id 1 sudah dihapus",
+  "success": false,
+  "data": null,
+  "path": "/api/document-versions/1",
+  "timestamp": "2025-01-15T12:00:00.000Z"
 }
 ```
 
@@ -381,6 +405,8 @@ Authorization: Bearer <token>
 ### 9. GET /api/document-versions/deleted/list
 
 Mendapatkan semua versi dokumen yang sudah di-soft delete.
+
+**Role Required:** ADMIN
 
 **Contoh Request:**
 
@@ -399,7 +425,10 @@ Authorization: Bearer <token>
     {
       "id": 1,
       "version_number": 2,
-      "deleted_at": "2025-01-15T12:00:00.000Z"
+      "file_url": "https://example.com/doc-v2.pdf",
+      "notes": "Versi amandemen",
+      "deleted_at": "2025-01-15T12:00:00.000Z",
+      "deleted_by": 1
     }
   ]
 }
@@ -410,6 +439,8 @@ Authorization: Bearer <token>
 ### 10. PATCH /api/document-versions/restore/:id
 
 Mengembalikan versi dokumen yang sudah di-soft delete.
+
+**Role Required:** ADMIN
 
 **Contoh Request:**
 
@@ -427,7 +458,8 @@ Authorization: Bearer <token>
   "data": {
     "id": 1,
     "version_number": 2,
-    "deleted_at": null
+    "deleted_at": null,
+    "updated_at": "2025-01-15T13:00:00.000Z"
   }
 }
 ```
@@ -452,3 +484,12 @@ Authorization: Bearer <token>
 - `version_number` harus unik per dokumen
 - Versi yang lebih tinggi biasanya menandakan revisi terbaru
 - Soft delete memungkinkan restore versi lama jika diperlukan
+
+## Audit Logs
+
+Setiap operasi CREATE, UPDATE, DELETE pada versi dokumen akan tercatat di **Audit Logs** dengan informasi:
+
+- User yang melakukan aksi
+- Timestamp
+- Data lama dan data baru (untuk UPDATE)
+- Entity: `DocumentVersion`

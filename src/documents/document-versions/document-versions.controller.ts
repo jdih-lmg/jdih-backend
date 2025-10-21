@@ -21,13 +21,11 @@ import type {
 } from '../dto/document-version.dto';
 import { DocumentVersion } from 'src/entities/document-versions.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { RoleEnum } from 'src/entities/roles.entity';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { Permission } from 'src/auth/decorators/permission.decorator';
 
 @Controller('document-versions')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class DocumentVersionsController {
   constructor(private readonly versionsService: DocumentVersionsService) {}
 
@@ -60,6 +58,7 @@ export class DocumentVersionsController {
 
   // get all versions with pagination or search
   @Get('list')
+  @Permission('dokumen-versi', 'read')
   async getAllDocumentVersionsPaginationController(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -83,6 +82,7 @@ export class DocumentVersionsController {
 
   // get all versions
   @Get()
+  @Permission('dokumen-versi', 'read')
   async getAllDocumentVersionsController() {
     const versions = await this.versionsService.getAllDocumentVersionsService();
 
@@ -95,6 +95,7 @@ export class DocumentVersionsController {
 
   // get all versions by document id
   @Get('documents/:documentId/versions')
+  @Permission('dokumen-versi', 'read')
   async getAllDocumentVersionsByDocumentIdController(
     @Param('documentId', ParseIntPipe) documentId: number,
   ) {
@@ -110,6 +111,7 @@ export class DocumentVersionsController {
 
   // get version by id
   @Get(':id')
+  @Permission('dokumen-versi', 'read')
   async getDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.getDocumentVersionByIdService(id);
 
@@ -123,7 +125,7 @@ export class DocumentVersionsController {
   // create version untuk document (documentId di dalam body)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles(RoleEnum.ADMIN)
+  @Permission('dokumen-versi', 'create')
   async createDocumentVersionController(
     @Body() dto: CreateDocumentVersionDto,
     @CurrentUser('userId') userId: number,
@@ -139,7 +141,7 @@ export class DocumentVersionsController {
 
   // alternatif: create spesifik di bawah document (inject documentId)
   @Post('documents/:documentId/versions')
-  @HttpCode(HttpStatus.CREATED)
+  @Permission('dokumen-versi', 'create')
   async createDocumentVersionUnderDocumentController(
     @Param('documentId', ParseIntPipe) documentId: number,
     @Body() dto: Omit<CreateDocumentVersionDto, 'document_id'>,
@@ -160,7 +162,7 @@ export class DocumentVersionsController {
 
   // update version by id
   @Put(':id')
-  @Roles(RoleEnum.ADMIN)
+  @Permission('dokumen-versi', 'update')
   async updateDocumentVersionController(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDocumentVersionDto,
@@ -177,7 +179,7 @@ export class DocumentVersionsController {
 
   // delete version
   @Delete(':id')
-  @Roles(RoleEnum.ADMIN)
+  @Permission('dokumen-versi', 'delete')
   async deleteDocumentVersionByIdController(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('userId') userId: number,
@@ -193,6 +195,7 @@ export class DocumentVersionsController {
 
   // get all deleted versions
   @Get('deleted/list')
+  @Permission('dokumen-versi', 'read')
   async getAllDeletedDocumentVersionsController() {
     const deleted = await this.versionsService.getAllDeletedDocumentVersionsService();
 
@@ -205,7 +208,7 @@ export class DocumentVersionsController {
 
   // restore version
   @Patch('restore/:id')
-  @Roles(RoleEnum.ADMIN)
+  @Permission('dokumen-versi', 'update')
   async restoreDeletedDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.restoreDeletedDocumentVersionByIdService(id);
 

@@ -1,18 +1,16 @@
-import { Controller, Get, HttpCode, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AuditLogsService } from './audit-logs.service';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { RoleEnum } from 'src/entities/roles.entity';
+import { Permission } from 'src/auth/decorators/permission.decorator';
 
 @Controller('audit-logs')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class AuditLogsController {
   constructor(private readonly auditLogsService: AuditLogsService) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @Roles(RoleEnum.ADMIN)
+  @Permission('audit-logs', 'read')
   async getAuditLogs(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -36,45 +34,33 @@ export class AuditLogsController {
   // get audit log by id
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @Roles(RoleEnum.ADMIN)
-  async getAuditLogById(@Query('id') id: string) {
-    const res = await this.auditLogsService.getAuditLogById(parseInt(id));
-
-    return {
-      message: 'Audit log berhasil diambil',
-      success: true,
-      res,
-    };
+  @Permission('audit-logs', 'read')
+  async getAuditLogById(@Param('id') id: string) {
+    return await this.auditLogsService.getAuditLogById(parseInt(id));
   }
 
   // get audit log by user id
-  @Get('user/:user_id')
+  @Get('user/:userId')
   @HttpCode(HttpStatus.OK)
-  @Roles(RoleEnum.ADMIN)
-  async getAuditLogsByUserId(@Query('user_id') user_id: string) {
-    const res = await this.auditLogsService.getAuditLogsByUserId(parseInt(user_id));
-
-    return {
-      message: 'Audit logs berhasil diambil',
-      success: true,
-      res,
-    };
+  @Permission('audit-logs', 'read')
+  async getAuditLogsByUserId(
+    @Param('userId') userId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.auditLogsService.getAuditLogsByUserId(parseInt(userId), page, limit);
   }
 
   // get audit logs by entity id
-  @Get('entity/:entity_id')
+  @Get('entity/:entity/:entityId')
   @HttpCode(HttpStatus.OK)
-  @Roles(RoleEnum.ADMIN)
+  @Permission('audit-logs', 'read')
   async getAuditLogsByEntityId(
-    @Query('entity') entity: string,
-    @Query('entity_id') entity_id: number,
+    @Param('entity') entity: string,
+    @Param('entityId') entityId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
   ) {
-    const res = await this.auditLogsService.getAuditLogsByEntityId(entity, entity_id);
-
-    return {
-      message: 'Audit logs berhasil diambil',
-      success: true,
-      res,
-    };
+    return await this.auditLogsService.getAuditLogsByEntityId(entity, entityId, page, limit);
   }
 }
