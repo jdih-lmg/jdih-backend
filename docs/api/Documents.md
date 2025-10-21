@@ -7,7 +7,7 @@ Base URL: `/api/documents`
 
 ## Endpoints
 
-### 1. GET /api/documents/list
+### 1. GET /api/documents
 
 Mendapatkan daftar dokumen dengan pagination dan filter.
 
@@ -15,15 +15,16 @@ Mendapatkan daftar dokumen dengan pagination dan filter.
 
 - `page` (number, optional, default: 1) - Halaman yang diminta
 - `limit` (number, optional, default: 10, max: 100) - Jumlah item per halaman
-- `title` (string, optional) - Filter berdasarkan judul (case-insensitive)
+- `title` (string, optional) - Filter berdasarkan judul (case-insensitive, partial match)
 - `status` (string, optional) - Filter berdasarkan status: `draft`, `verified`, `published`, `archived`
 - `year` (number, optional) - Filter berdasarkan tahun
 - `category_id` (number, optional) - Filter berdasarkan kategori
+- `type` (string, optional) - Filter berdasarkan tipe dokumen
 
 **Contoh Request:**
 
 ```bash
-GET /api/documents/list?page=1&limit=10&status=published&year=2025
+GET /api/documents?page=1&limit=10&status=published&year=2025&category_id=1
 Authorization: Bearer <token>
 ```
 
@@ -33,56 +34,6 @@ Authorization: Bearer <token>
 {
   "success": true,
   "message": "Berhasil mendapatkan daftar dokumen",
-  "meta": {
-    "page": 1,
-    "limit": 10,
-    "total": 25,
-    "last_page": 3
-  },
-  "data": [
-    {
-      "id": 1,
-      "title": "Peraturan Bupati No. 1 Tahun 2025",
-      "number": "1",
-      "type": "Peraturan Bupati",
-      "year": 2025,
-      "status": "published",
-      "category": {
-        "id": 1,
-        "name": "Peraturan Daerah"
-      },
-      "verified_by": {
-        "id": 1,
-        "name": "Admin"
-      },
-      "versions": [],
-      "created_at": "2025-01-15T10:00:00.000Z",
-      "updated_at": "2025-01-16T12:00:00.000Z",
-      "deleted_at": null
-    }
-  ]
-}
-```
-
----
-
-### 2. GET /api/documents
-
-Mendapatkan semua dokumen tanpa pagination.
-
-**Contoh Request:**
-
-```bash
-GET /api/documents
-Authorization: Bearer <token>
-```
-
-**Response 200:**
-
-```json
-{
-  "message": "Berhasil mendapatkan semua dokumen",
-  "success": true,
   "data": [
     {
       "id": 1,
@@ -94,26 +45,47 @@ Authorization: Bearer <token>
       "abstract": "Peraturan ini mengatur...",
       "keywords": "sampah, lingkungan",
       "status": "published",
-      "category": { "id": 1, "name": "Peraturan Daerah" },
       "publisher": "Bagian Hukum",
       "signed_by": "Bupati",
       "date_signed": "2025-01-15",
       "effective_date": "2025-02-01",
       "file_url": "https://example.com/doc.pdf",
       "verification_date": "2025-01-20T10:00:00.000Z",
-      "verified_by": { "id": 1, "name": "Admin" },
-      "versions": [],
+      "category": {
+        "id": 1,
+        "name": "Peraturan Daerah",
+        "description": "Kategori untuk Perda"
+      },
+      "verified_by": {
+        "id": 1,
+        "name": "Admin User",
+        "email": "admin@example.com"
+      },
+      "versions": [
+        {
+          "id": 1,
+          "version_number": 1,
+          "file_url": "https://example.com/doc-v1.pdf",
+          "notes": "Versi awal"
+        }
+      ],
       "created_at": "2025-01-15T10:00:00.000Z",
-      "updated_at": null,
+      "updated_at": "2025-01-16T12:00:00.000Z",
       "deleted_at": null
     }
-  ]
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "total_pages": 3
+  }
 }
 ```
 
 ---
 
-### 3. GET /api/documents/:id
+### 2. GET /api/documents/:id
 
 Mendapatkan detail dokumen berdasarkan ID.
 
@@ -128,8 +100,8 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "message": "Berhasil mendapatkan dokumen dengan id 1",
   "success": true,
+  "message": "Berhasil mendapatkan dokumen",
   "data": {
     "id": 1,
     "title": "Peraturan Bupati No. 1 Tahun 2025",
@@ -140,25 +112,36 @@ Authorization: Bearer <token>
     "abstract": "Peraturan ini mengatur tentang pengelolaan sampah...",
     "keywords": "sampah, lingkungan, kebersihan",
     "status": "published",
-    "category": {
-      "id": 1,
-      "name": "Peraturan Daerah",
-      "description": "Kategori untuk Perda"
-    },
     "publisher": "Bagian Hukum",
     "signed_by": "Bupati",
     "date_signed": "2025-01-15",
     "effective_date": "2025-02-01",
     "file_url": "https://example.com/files/perbup-1-2025.pdf",
     "verification_date": "2025-01-20T10:00:00.000Z",
+    "category": {
+      "id": 1,
+      "name": "Peraturan Daerah",
+      "description": "Kategori untuk Perda",
+      "created_at": "2025-01-01T00:00:00.000Z",
+      "updated_at": null
+    },
     "verified_by": {
       "id": 1,
-      "name": "Admin",
-      "email": "admin@jdih.com"
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "role": "ADMIN"
     },
-    "versions": [],
+    "versions": [
+      {
+        "id": 1,
+        "version_number": 1,
+        "file_url": "https://example.com/doc-v1.pdf",
+        "notes": "Versi awal",
+        "created_at": "2025-01-15T10:00:00.000Z"
+      }
+    ],
     "created_at": "2025-01-15T10:00:00.000Z",
-    "updated_at": null,
+    "updated_at": "2025-01-16T12:00:00.000Z",
     "deleted_at": null
   }
 }
@@ -168,17 +151,17 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "message": "Document dengan id 999 tidak ditemukan",
   "success": false,
-  "data": null,
-  "path": "/api/documents/999",
-  "timestamp": "2025-01-15T10:30:00.000Z"
+  "message": "Dokumen tidak ditemukan",
+  "statusCode": 404,
+  "timestamp": "2025-10-21T10:30:00.000Z",
+  "path": "/api/documents/999"
 }
 ```
 
 ---
 
-### 4. POST /api/documents
+### 3. POST /api/documents
 
 Membuat dokumen baru.
 
@@ -188,22 +171,22 @@ Membuat dokumen baru.
 
 ```json
 {
-  "title": "string (min 3 karakter)",
-  "number": "string (min 1 karakter)",
-  "type": "string (min 1 karakter)",
-  "year": "number (1900-currentYear)",
+  "title": "string (required, min 3 karakter)",
+  "number": "string (required, min 1 karakter)",
+  "type": "string (required, min 1 karakter)",
+  "year": "number (required, 1900-currentYear)",
   "subject": "string (optional)",
   "abstract": "string (optional)",
   "keywords": "string (optional)",
-  "status": "draft | verified | published | archived (default: draft)",
+  "status": "draft | verified | published | archived (optional, default: draft)",
   "category_id": "number (optional)",
   "publisher": "string (optional)",
   "signed_by": "string (optional)",
-  "date_signed": "date (optional)",
-  "effective_date": "date (optional)",
-  "file_url": "url (optional)",
-  "verification_date": "date (optional)",
-  "verified_by": "number (optional)"
+  "date_signed": "string (optional, format: YYYY-MM-DD)",
+  "effective_date": "string (optional, format: YYYY-MM-DD)",
+  "file_url": "string (optional, valid URL)",
+  "verification_date": "string (optional, ISO 8601 datetime)",
+  "verified_by": "number (optional, user ID)"
 }
 ```
 
@@ -225,7 +208,9 @@ Content-Type: application/json
   "status": "draft",
   "category_id": 1,
   "publisher": "Bagian Hukum",
-  "signed_by": "Bupati"
+  "signed_by": "Bupati",
+  "date_signed": "2025-01-15",
+  "effective_date": "2025-02-01"
 }
 ```
 
@@ -233,49 +218,90 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "Berhasil membuat dokumen baru",
   "success": true,
+  "message": "Dokumen berhasil dibuat",
   "data": {
     "id": 15,
     "title": "Peraturan Bupati No. 5 Tahun 2025",
     "number": "5",
     "type": "Peraturan Bupati",
     "year": 2025,
+    "subject": "Pajak Daerah",
+    "abstract": "Mengatur tentang pajak daerah",
+    "keywords": "pajak, daerah",
     "status": "draft",
-    "created_at": "2025-01-15T10:00:00.000Z",
-    "created_by": 1
+    "category_id": 1,
+    "publisher": "Bagian Hukum",
+    "signed_by": "Bupati",
+    "date_signed": "2025-01-15",
+    "effective_date": "2025-02-01",
+    "created_at": "2025-10-21T10:00:00.000Z"
   }
+}
+```
+
+**Error 400 - Validation Error:**
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "statusCode": 400,
+  "errors": [
+    {
+      "field": "title",
+      "message": "title must be longer than or equal to 3 characters"
+    },
+    {
+      "field": "year",
+      "message": "year must not be greater than 2025"
+    }
+  ],
+  "timestamp": "2025-10-21T10:30:00.000Z",
+  "path": "/api/documents"
+}
+```
+
+**Error 404 - Category Not Found:**
+
+```json
+{
+  "success": false,
+  "message": "Kategori tidak ditemukan",
+  "statusCode": 404,
+  "timestamp": "2025-10-21T10:30:00.000Z",
+  "path": "/api/documents"
 }
 ```
 
 ---
 
-### 5. PUT /api/documents/:id
+### 4. PUT /api/documents/:id
 
-Memperbarui dokumen berdasarkan ID.
+Memperbarui dokumen berdasarkan ID (full update).
 
 **Role Required:** ADMIN
 
-**Request Body:** (semua field optional)
+**Request Body:** (semua field yang ada di create, semua optional untuk update)
 
 ```json
 {
-  "title": "string",
-  "number": "string",
-  "type": "string",
-  "year": "number",
-  "subject": "string",
-  "abstract": "string",
-  "keywords": "string",
-  "status": "draft | verified | published | archived",
-  "category_id": "number",
-  "publisher": "string",
-  "signed_by": "string",
-  "date_signed": "date",
-  "effective_date": "date",
-  "file_url": "url",
-  "verification_date": "date",
-  "verified_by": "number"
+  "title": "string (optional)",
+  "number": "string (optional)",
+  "type": "string (optional)",
+  "year": "number (optional)",
+  "subject": "string (optional)",
+  "abstract": "string (optional)",
+  "keywords": "string (optional)",
+  "status": "draft | verified | published | archived (optional)",
+  "category_id": "number (optional)",
+  "publisher": "string (optional)",
+  "signed_by": "string (optional)",
+  "date_signed": "string (optional)",
+  "effective_date": "string (optional)",
+  "file_url": "string (optional)",
+  "verification_date": "string (optional)",
+  "verified_by": "number (optional)"
 }
 ```
 
@@ -287,8 +313,10 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "title": "Peraturan Bupati No. 1 Tahun 2025 (Updated)",
-  "status": "published"
+  "title": "Peraturan Bupati No. 1 Tahun 2025 (Revisi)",
+  "status": "published",
+  "verification_date": "2025-10-21T10:00:00.000Z",
+  "verified_by": 1
 }
 ```
 
@@ -296,17 +324,40 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "Berhasil memperbarui dokumen dengan id 1",
   "success": true,
+  "message": "Dokumen berhasil diperbarui",
   "data": {
     "id": 1,
-    "title": "Peraturan Bupati No. 1 Tahun 2025 (Updated)",
+    "title": "Peraturan Bupati No. 1 Tahun 2025 (Revisi)",
+    "number": "1",
+    "type": "Peraturan Bupati",
+    "year": 2025,
     "status": "published",
-    "updated_at": "2025-01-15T11:00:00.000Z",
-    "updated_by": 1
+    "verification_date": "2025-10-21T10:00:00.000Z",
+    "verified_by": 1,
+    "updated_at": "2025-10-21T11:00:00.000Z"
   }
 }
 ```
+
+---
+
+### 5. PATCH /api/documents/:id
+
+Memperbarui dokumen berdasarkan ID (partial update).
+
+**Role Required:** ADMIN
+
+**Request Body:** (field yang ingin diupdate saja)
+
+```json
+{
+  "status": "published",
+  "verification_date": "2025-10-21T10:00:00.000Z"
+}
+```
+
+**Response 200:** (sama dengan PUT)
 
 ---
 
@@ -327,13 +378,12 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "message": "Berhasil menghapus dokumen dengan id 1",
   "success": true,
+  "message": "Dokumen berhasil dihapus",
   "data": {
     "id": 1,
     "title": "Peraturan Bupati No. 1 Tahun 2025",
-    "deleted_at": "2025-01-15T12:00:00.000Z",
-    "deleted_by": 1
+    "deleted_at": "2025-10-21T12:00:00.000Z"
   }
 }
 ```
@@ -342,26 +392,28 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "message": "Document dengan id 1 sudah dihapus",
   "success": false,
-  "data": null,
-  "path": "/api/documents/1",
-  "timestamp": "2025-01-15T12:00:00.000Z"
+  "message": "Dokumen tidak ditemukan",
+  "statusCode": 404,
+  "timestamp": "2025-10-21T12:00:00.000Z",
+  "path": "/api/documents/1"
 }
 ```
 
 ---
 
-### 7. GET /api/documents/deleted/list
+### 7. GET /api/documents/deleted
 
 Mendapatkan semua dokumen yang sudah di-soft delete.
 
 **Role Required:** ADMIN
 
+**Query Parameters:** (sama seperti GET /api/documents)
+
 **Contoh Request:**
 
 ```bash
-GET /api/documents/deleted/list
+GET /api/documents/deleted?page=1&limit=10
 Authorization: Bearer <token>
 ```
 
@@ -369,25 +421,32 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "message": "Berhasil mendapatkan semua dokumen yang terhapus",
   "success": true,
+  "message": "Berhasil mendapatkan daftar dokumen yang dihapus",
   "data": [
     {
       "id": 3,
-      "title": "Peraturan Bupati No. 1 Tahun 2025",
-      "number": "1",
+      "title": "Peraturan Bupati No. 3 Tahun 2024",
+      "number": "3",
       "type": "Peraturan Bupati",
-      "year": 2025,
-      "deleted_at": "2025-01-15T12:00:00.000Z",
-      "deleted_by": 1
+      "year": 2024,
+      "status": "archived",
+      "deleted_at": "2025-10-20T12:00:00.000Z",
+      "created_at": "2024-01-15T10:00:00.000Z"
     }
-  ]
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "total": 5,
+    "total_pages": 1
+  }
 }
 ```
 
 ---
 
-### 8. PATCH /api/documents/restore/:id
+### 8. PATCH /api/documents/:id/restore
 
 Mengembalikan dokumen yang sudah di-soft delete.
 
@@ -396,7 +455,7 @@ Mengembalikan dokumen yang sudah di-soft delete.
 **Contoh Request:**
 
 ```bash
-PATCH /api/documents/restore/3
+PATCH /api/documents/3/restore
 Authorization: Bearer <token>
 ```
 
@@ -404,13 +463,13 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "message": "Berhasil mengembalikan dokumen dengan id 3",
   "success": true,
+  "message": "Dokumen berhasil dipulihkan",
   "data": {
     "id": 3,
-    "title": "Peraturan Bupati No. 1 Tahun 2025",
+    "title": "Peraturan Bupati No. 3 Tahun 2024",
     "deleted_at": null,
-    "updated_at": "2025-01-15T13:00:00.000Z"
+    "updated_at": "2025-10-21T13:00:00.000Z"
   }
 }
 ```
@@ -419,11 +478,11 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "message": "Document dengan id 3 tidak dalam status terhapus",
   "success": false,
-  "data": null,
-  "path": "/api/documents/restore/3",
-  "timestamp": "2025-01-15T13:00:00.000Z"
+  "message": "Dokumen tidak ditemukan atau belum dihapus",
+  "statusCode": 404,
+  "timestamp": "2025-10-21T13:00:00.000Z",
+  "path": "/api/documents/3/restore"
 }
 ```
 
@@ -435,10 +494,35 @@ Authorization: Bearer <token>
 draft → verified → published → archived
 ```
 
-- **draft**: Dokumen baru dibuat
+- **draft**: Dokumen baru dibuat, belum diverifikasi
 - **verified**: Dokumen sudah diverifikasi oleh admin
-- **published**: Dokumen dipublikasikan untuk publik
-- **archived**: Dokumen diarsipkan (tidak aktif)
+- **published**: Dokumen dipublikasikan dan dapat diakses publik
+- **archived**: Dokumen diarsipkan (tidak aktif tetapi masih tersimpan)
+
+## Field Validations
+
+### Required Fields:
+
+- `title` (min: 3 characters)
+- `number` (min: 1 character)
+- `type` (min: 1 character)
+- `year` (range: 1900 - current year)
+
+### Optional Fields:
+
+- `subject`, `abstract`, `keywords`, `publisher`, `signed_by`
+- `date_signed`, `effective_date` (format: YYYY-MM-DD)
+- `file_url` (must be valid URL if provided)
+- `status` (enum: draft, verified, published, archived)
+- `category_id` (must exist in database)
+- `verified_by` (must be valid user ID)
+- `verification_date` (ISO 8601 datetime string)
+
+## Relations
+
+- **category**: Many-to-One dengan DocumentCategory (optional)
+- **verified_by**: Many-to-One dengan User (optional)
+- **versions**: One-to-Many dengan DocumentVersion
 
 ## Audit Logs
 
@@ -446,5 +530,41 @@ Setiap operasi CREATE, UPDATE, DELETE pada dokumen akan tercatat di **Audit Logs
 
 - User yang melakukan aksi
 - Timestamp
-- Data lama dan data baru (untuk UPDATE)
+- Action type (CREATE, UPDATE, DELETE, RESTORE)
 - Entity: `Document`
+- Data lama dan data baru (untuk UPDATE)
+- IP Address dan User Agent
+
+## Error Responses
+
+**401 Unauthorized:**
+
+```json
+{
+  "success": false,
+  "message": "Unauthorized",
+  "statusCode": 401
+}
+```
+
+**403 Forbidden:**
+
+```json
+{
+  "success": false,
+  "message": "Forbidden resource",
+  "statusCode": 403
+}
+```
+
+**500 Internal Server Error:**
+
+```json
+{
+  "success": false,
+  "message": "Internal server error",
+  "statusCode": 500,
+  "timestamp": "2025-10-21T10:30:00.000Z",
+  "path": "/api/documents"
+}
+```
