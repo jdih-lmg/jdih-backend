@@ -19,18 +19,16 @@ import type {
 } from '../dto/document-category.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { RoleEnum } from 'src/entities/roles.entity';
+import { Permission } from 'src/auth/decorators/permission.decorator';
 
 @Controller('document-category')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class DocumentCategoryController {
   constructor(private readonly categoriesService: DocumentCategoryService) {}
 
   // get all document categories with pagination or search
   @Get('list')
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Permission('kategori', 'read')
   async getAllDocumentCategoriesWithPaginationController(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -41,7 +39,7 @@ export class DocumentCategoryController {
 
   // get all document categories
   @Get()
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Permission('kategori', 'read')
   async getAllDocumentCategoriesController() {
     const categories = await this.categoriesService.getAllDocumentCategoriesService();
 
@@ -54,7 +52,7 @@ export class DocumentCategoryController {
 
   // get document category by id
   @Get(':id')
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @Permission('kategori', 'read')
   async getDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.getDocumentCategoryByIdService(id);
 
@@ -67,7 +65,7 @@ export class DocumentCategoryController {
 
   // create document category
   @Post()
-  @Roles(RoleEnum.ADMIN)
+  @Permission('kategori', 'create')
   async createDocumentCategoryController(
     @Body() dto: CreateDocumentCategoryDto,
     @CurrentUser('userId') userId: number,
@@ -83,7 +81,7 @@ export class DocumentCategoryController {
 
   // update document category by id
   @Put(':id')
-  @Roles(RoleEnum.ADMIN)
+  @Permission('kategori', 'update')
   async updateDocumentCategoryByIdController(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDocumentCategoryDto,
@@ -100,7 +98,7 @@ export class DocumentCategoryController {
 
   // delete document category by id
   @Delete(':id')
-  @Roles(RoleEnum.ADMIN)
+  @Permission('kategori', 'delete')
   async deleteDocumentCategoryByIdController(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('userId') userId: number,
@@ -116,7 +114,7 @@ export class DocumentCategoryController {
 
   // get all deleted document categories
   @Get('deleted/list')
-  @Roles(RoleEnum.ADMIN)
+  @Permission('kategori', 'read')
   async getAllDeletedDocumentCategoriesController() {
     const deleted = await this.categoriesService.getAllDeletedDocumentCategoriesService();
 
@@ -129,7 +127,7 @@ export class DocumentCategoryController {
 
   // restore deleted document category by id
   @Patch('restore/:id')
-  @Roles(RoleEnum.ADMIN)
+  @Permission('kategori', 'update')
   async restoreDeletedDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.restoreDeletedDocumentCategoryService(id);
 

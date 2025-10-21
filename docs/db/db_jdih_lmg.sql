@@ -218,6 +218,11 @@ COMMIT;
 
 
 -- Dump data of "audit_logs" -------------------------------
+BEGIN;
+
+INSERT INTO `audit_logs`(`id`,`user_id`,`action`,`entity`,`entity_id`,`old_data`,`new_data`,`created_at`) VALUES 
+( '5', '1', 'LOGIN', 'Auth', '1', NULL, '{"ip": "::1", "user_agent": "insomnia/11.5.0"}', '2025-10-21 03:02:37.310394' );
+COMMIT;
 -- ---------------------------------------------------------
 
 
@@ -357,10 +362,10 @@ COMMIT;
 BEGIN;
 
 INSERT INTO `users`(`id`,`name`,`email`,`password_hash`,`role_id`,`created_at`,`created_by`,`updated_at`,`updated_by`,`deleted_at`,`deleted_by`) VALUES 
-( '1', 'Admin JDIH', 'admin@jdih.go.id', '$2b$10$7Q5EPHx9t0uF4h6QKfxvIOTnUUlJXKMn7Vdb1PDt3KQfM5VQxD9Qm', '1', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
-( '2', 'Verifikator JDIH', 'verifikator@jdih.go.id', '$2b$10$7Q5EPHx9t0uF4h6QKfxvIOTnUUlJXKMn7Vdb1PDt3KQfM5VQxD9Qm', '2', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
-( '3', 'Petugas Dokumen', 'dokumen@jdih.go.id', '$2b$10$7Q5EPHx9t0uF4h6QKfxvIOTnUUlJXKMn7Vdb1PDt3KQfM5VQxD9Qm', '3', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
-( '4', 'Petugas Konten', 'konten@jdih.go.id', '$2b$10$7Q5EPHx9t0uF4h6QKfxvIOTnUUlJXKMn7Vdb1PDt3KQfM5VQxD9Qm', '4', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL );
+( '1', 'Admin JDIH', 'admin@jdih.go.id', '$2b$10$m.AV5nnYJYqOx0gDwE5zd.NRclcP9W22HM/HP748FNC4BjAseFv9q', '1', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '2', 'Verifikator JDIH', 'verifikator@jdih.go.id', '$2b$10$m.AV5nnYJYqOx0gDwE5zd.NRclcP9W22HM/HP748FNC4BjAseFv9q', '2', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '3', 'Petugas Dokumen', 'dokumen@jdih.go.id', '$2b$10$m.AV5nnYJYqOx0gDwE5zd.NRclcP9W22HM/HP748FNC4BjAseFv9q', '3', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL ),
+( '4', 'Petugas Konten', 'konten@jdih.go.id', '$2b$10$m.AV5nnYJYqOx0gDwE5zd.NRclcP9W22HM/HP748FNC4BjAseFv9q', '4', '2025-10-20 09:09:03.000000', NULL, NULL, NULL, NULL, NULL );
 COMMIT;
 -- ---------------------------------------------------------
 

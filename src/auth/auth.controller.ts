@@ -51,4 +51,16 @@ export class AuthController {
       data: user,
     };
   }
+
+  // get all users permissions
+  @Get('users/permissions')
+  async getAllUsersWithPermissions() {
+    const data = await this.authService.getAllUsersWithPermissions();
+
+    return {
+      message: 'Berhasil mendapatkan semua user dengan permissions',
+      success: true,
+      data,
+    };
+  }
 }

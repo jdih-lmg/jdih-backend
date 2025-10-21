@@ -1,18 +1,14 @@
 import { Controller, Get, HttpCode, HttpStatus, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AuditLogsService } from './audit-logs.service';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { RoleEnum } from 'src/entities/roles.entity';
 
 @Controller('audit-logs')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class AuditLogsController {
   constructor(private readonly auditLogsService: AuditLogsService) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @Roles(RoleEnum.ADMIN)
   async getAuditLogs(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -36,7 +32,6 @@ export class AuditLogsController {
   // get audit log by id
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @Roles(RoleEnum.ADMIN)
   async getAuditLogById(@Query('id') id: string) {
     const res = await this.auditLogsService.getAuditLogById(parseInt(id));
 
@@ -50,7 +45,6 @@ export class AuditLogsController {
   // get audit log by user id
   @Get('user/:user_id')
   @HttpCode(HttpStatus.OK)
-  @Roles(RoleEnum.ADMIN)
   async getAuditLogsByUserId(@Query('user_id') user_id: string) {
     const res = await this.auditLogsService.getAuditLogsByUserId(parseInt(user_id));
 
@@ -64,7 +58,6 @@ export class AuditLogsController {
   // get audit logs by entity id
   @Get('entity/:entity_id')
   @HttpCode(HttpStatus.OK)
-  @Roles(RoleEnum.ADMIN)
   async getAuditLogsByEntityId(
     @Query('entity') entity: string,
     @Query('entity_id') entity_id: number,
