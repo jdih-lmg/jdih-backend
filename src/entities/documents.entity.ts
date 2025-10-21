@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { DocumentCategory } from './document-categories.entity';
 import { DocumentVersion } from './document-versions.entity';
 import { User } from './users.entity';
@@ -67,19 +77,19 @@ export class Document {
   @OneToMany(() => DocumentVersion, (version) => version.document)
   versions: DocumentVersion[];
 
-  @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
   created_at: Date;
 
   @Column({ name: 'created_by', type: 'bigint', unsigned: true, nullable: true })
   created_by?: number | null;
 
-  @Column({ name: 'updated_at', type: 'datetime', nullable: true })
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime', nullable: true })
   updated_at?: Date | null;
 
   @Column({ name: 'updated_by', type: 'bigint', unsigned: true, nullable: true })
   updated_by?: number | null;
 
-  @Column({ name: 'deleted_at', type: 'datetime', nullable: true })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
   deleted_at?: Date | null;
 
   @Column({ name: 'deleted_by', type: 'bigint', unsigned: true, nullable: true })

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, IsNull, Not, Repository } from 'typeorm';
 import { Document } from 'src/entities/documents.entity';
@@ -13,6 +18,7 @@ import { ValidationService } from 'src/common/validation.service';
 import { User } from 'src/entities/users.entity';
 import { DocumentQueryDto, documentQuerySchema } from './dto/document-query.dto';
 import { AuditAction, AuditLogsService } from 'src/audit-logs/audit-logs.service';
+import { AuthUser } from 'src/auth/auth-user.interface';
 
 @Injectable()
 export class DocumentsService {
@@ -23,6 +29,41 @@ export class DocumentsService {
     private readonly auditLogsService: AuditLogsService,
     private readonly validation: ValidationService,
   ) {}
+
+  // mapper documents helper
+  mapDocumentResponse = (doc: Document) => ({
+    id: doc.id,
+    title: doc.title,
+    number: doc.number,
+    type: doc.type,
+    year: doc.year,
+    subject: doc.subject,
+    abstract: doc.abstract,
+    keywords: doc.keywords,
+    status: doc.status,
+    category: doc.category
+      ? {
+          id: doc.category.id,
+          name: doc.category.name,
+        }
+      : null,
+    publisher: doc.publisher,
+    signed_by: doc.signed_by,
+    date_signed: doc.dateSigned,
+    effective_date: doc.effectiveDate,
+    verification_date: doc.verificationDate,
+    file_url: doc.fileUrl,
+    verified_by: doc.verified_by
+      ? {
+          id: doc.verified_by.id,
+          name: doc.verified_by.name,
+        }
+      : null,
+    created_by: doc.created_by,
+    updated_by: doc.updated_by,
+    created_at: doc.created_at,
+    updated_at: doc.updated_at,
+  });
 
   // get all documents with pagination and filters
   async getAllDocumentsPaginationService(query: DocumentQueryDto) {
@@ -52,38 +93,7 @@ export class DocumentsService {
     });
 
     // mapping response data
-    const mappedData = data.map((doc) => ({
-      id: doc.id,
-      title: doc.title,
-      number: doc.number,
-      type: doc.type,
-      year: doc.year,
-      status: doc.status,
-      category: doc.category
-        ? {
-            id: doc.category.id,
-            name: doc.category.name,
-          }
-        : null,
-      verified_by: doc.verified_by
-        ? {
-            id: doc.verified_by.id,
-            name: doc.verified_by.name,
-          }
-        : null,
-      versions: doc.versions?.map((v) => ({
-        id: v.id,
-        version_number: v.version_number,
-        file_url: v.file_url,
-        notes: v.notes,
-      })),
-      created_at: doc.created_at,
-      updated_at: doc.updated_at,
-      deleted_at: doc.deleted_at,
-      created_by: doc.created_by ? { id: doc.created_by, name: doc.created_by } : null,
-      updated_by: doc.updated_by ? { id: doc.updated_by, name: doc.updated_by } : null,
-      deleted_by: doc.deleted_by ? { id: doc.deleted_by, name: doc.deleted_by } : null,
-    }));
+    const mappedData = data.map(this.mapDocumentResponse);
 
     return {
       success: true,
@@ -99,11 +109,13 @@ export class DocumentsService {
   }
 
   // get all documents
-  async getAllDocumentsService(): Promise<Document[]> {
-    return this.documentRepo.find({
+  async getAllDocumentsService() {
+    const docs = await this.documentRepo.find({
       relations: ['category', 'verified_by', 'versions'],
       order: { created_at: 'DESC' },
     });
+
+    return docs.map(this.mapDocumentResponse);
   }
 
   // get document by id
@@ -115,15 +127,43 @@ export class DocumentsService {
 
     if (!doc) throw new NotFoundException(`Document dengan id ${id} tidak ditemukan`);
 
-    return doc;
+    const mapped = this.mapDocumentResponse(doc);
+
+    return mapped as unknown as Document;
   }
 
   // create document
   async createDocumentService(data: CreateDocumentDto, userId?: number): Promise<Document> {
+    // validasi input sesuai schema
+    const dto = this.validation.validate(createDocumentSchema, data);
+
+    // pastikan user valid dan ambil role-nya
+    const user = userId
+      ? await this.userRepo.findOne({ where: { id: userId }, relations: ['role'] })
+      : null;
+
+    if (!user) {
+      throw new ForbiddenException('User tidak ditemukan atau tidak memiliki akses.');
+    }
+
+    // tentukan role user
+    const roleName = user.role?.name || '';
+
+    // role petugas_dokumen hanya boleh membuat draft
+    if (roleName === 'petugas_dokumen') {
+      dto.status = 'draft';
+    }
+
+    // jika bukan admin/verifikator, cegah set status selain draft
+    if (!['admin', 'verifikator'].includes(roleName) && dto.status !== 'draft') {
+      throw new ForbiddenException(
+        `Role ${roleName} tidak diizinkan membuat dokumen dengan status ${dto.status}`,
+      );
+    }
+
+    // siapkan relasi kategori & verifikator
     let category: DocumentCategory | null = null;
     let verifiedBy: User | null = null;
-
-    const dto = this.validation.validate(createDocumentSchema, data);
 
     if (dto.category_id) {
       category = await this.categoryRepo.findOne({ where: { id: dto.category_id } });
@@ -133,25 +173,29 @@ export class DocumentsService {
       verifiedBy = await this.userRepo.findOne({ where: { id: dto.verified_by } });
     }
 
+    // buat entity dokumen baru
     const doc = this.documentRepo.create({
       ...dto,
       category,
       verified_by: verifiedBy,
-      created_by: userId || null,
+      created_by: user.id,
     });
 
-    const saved = this.documentRepo.save(doc);
+    // simpan ke database
+    const saved = await this.documentRepo.save(doc);
 
+    // catat audit log
     await this.auditLogsService.logAction(
-      { id: userId || 0 },
+      { id: user.id },
       AuditAction.CREATE,
       'Document',
-      (await saved).id,
+      saved.id,
       null,
       saved,
     );
 
-    return saved;
+    // kembalikan hasil dengan mapping response
+    return this.mapDocumentResponse(saved) as unknown as Document;
   }
 
   // update document by id
@@ -161,6 +205,30 @@ export class DocumentsService {
     userId?: number,
   ): Promise<Document> {
     const target = await this.getDocumentByIdService(id);
+
+    // pastikan user valid dan ambil role-nya
+    const user = userId
+      ? await this.userRepo.findOne({ where: { id: userId }, relations: ['role'] })
+      : null;
+
+    if (!user) {
+      throw new ForbiddenException('User tidak ditemukan atau tidak memiliki akses.');
+    }
+
+    // tentukan role user
+    const roleName = user.role?.name || '';
+
+    // role petugas_dokumen hanya boleh membuat draft
+    if (roleName === 'petugas_dokumen') {
+      data.status = 'draft';
+    }
+
+    // jika bukan admin/verifikator, cegah set status selain draft
+    if (!['admin', 'verifikator'].includes(roleName) && data.status !== 'draft') {
+      throw new ForbiddenException(
+        `Role ${roleName} tidak diizinkan membuat dokumen dengan status ${data.status}`,
+      );
+    }
 
     if (data.category_id) {
       target.category = await this.categoryRepo.findOne({ where: { id: data.category_id } });
@@ -192,6 +260,83 @@ export class DocumentsService {
     );
 
     return updated;
+  }
+
+  // update document status
+  async changeDocumentStatusByIdService(
+    id: number,
+    newStatus: 'draft' | 'verified' | 'published' | 'archived',
+    user: AuthUser,
+  ) {
+    const doc = await this.getDocumentByIdService(id);
+
+    const current = doc.status;
+
+    // rule transisi status
+    const statusTransitions: Record<string, Record<string, string[]>> = {
+      draft: {
+        verified: ['admin', 'verifikator'], // hanya admin & verifikator
+      },
+      verified: {
+        published: ['admin'], // hanya admin
+        archived: ['admin'], // hanya admin
+      },
+      published: {
+        archived: ['admin'], // hanya admin
+      },
+      archived: {
+        draft: ['admin'], // hanya admin
+      },
+    };
+
+    // cek validitas transisi
+    const allowedRoles = statusTransitions[current]?.[newStatus];
+
+    if (user.role.name === 'petugas_dokumen' && newStatus !== 'draft') {
+      throw new ForbiddenException('Petugas dokumen tidak boleh mengubah status dokumen');
+    }
+
+    if (!allowedRoles) {
+      throw new BadRequestException(
+        `Transisi status dari ${current} ke ${newStatus} tidak diizinkan`,
+      );
+    }
+
+    if (!allowedRoles.includes(user.role.name)) {
+      throw new ForbiddenException(
+        `Role ${user.role.name} tidak memiliki izin untuk mengubah status dari ${current} ke ${newStatus}`,
+      );
+    }
+
+    // update dokumen
+    doc.status = newStatus;
+
+    if (newStatus === 'verified') {
+      doc.verificationDate = new Date();
+      doc.updated_at = new Date();
+      doc.updated_by = user.id || null;
+      doc.verified_by = user.id ? await this.userRepo.findOne({ where: { id: user.id } }) : null;
+    }
+
+    if (newStatus === 'published') {
+      doc.effectiveDate = new Date();
+      doc.updated_at = new Date();
+      doc.updated_by = user.id || null;
+    }
+
+    await this.documentRepo.save(doc);
+
+    // audit log
+    await this.auditLogsService.logAction(
+      { id: user.id || 0 },
+      AuditAction.UPDATE,
+      'Document Status',
+      doc.id,
+      { status: current },
+      { status: newStatus },
+    );
+
+    return this.mapDocumentResponse(doc);
   }
 
   // delete document by id
