@@ -21,9 +21,10 @@ import type { DocumentQueryDto } from './dto/document-query.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
+import { PermissionGuard } from 'src/auth/guards/permission.guard';
 
 @Controller('documents')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 

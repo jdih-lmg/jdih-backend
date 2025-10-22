@@ -23,9 +23,10 @@ import { DocumentVersion } from 'src/entities/document-versions.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
+import { PermissionGuard } from 'src/auth/guards/permission.guard';
 
 @Controller('document-versions')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class DocumentVersionsController {
   constructor(private readonly versionsService: DocumentVersionsService) {}
 

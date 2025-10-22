@@ -20,9 +20,10 @@ import type {
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
+import { PermissionGuard } from 'src/auth/guards/permission.guard';
 
 @Controller('document-category')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class DocumentCategoryController {
   constructor(private readonly categoriesService: DocumentCategoryService) {}
 
