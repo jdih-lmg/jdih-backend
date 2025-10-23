@@ -17,18 +17,18 @@ export class VisitorStat {
   ipAddress: string;
 
   @Column({ name: 'user_agent', type: 'text', nullable: true })
-  userAgent?: string;
+  userAgent?: string | null;
 
   @Column({ length: 255 })
   page: string;
 
-  @Column({ length: 255, nullable: true })
-  referrer?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  referrer?: string | null;
 
   @CreateDateColumn({ name: 'visited_at', type: 'datetime' })
   visitedAt: Date;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'user_id' })
-  user?: User;
+  user?: User | null;
 }

@@ -32,10 +32,10 @@ export class News {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'author_id' })
-  author?: User;
+  author?: User | null;
 
   @Column({ name: 'published_at', type: 'datetime', nullable: true })
-  publishedAt?: Date;
+  publishedAt?: Date | null;
 
   @Column({ name: 'is_published', type: 'boolean', default: false })
   isPublished: boolean;
@@ -46,7 +46,7 @@ export class News {
     joinColumn: { name: 'news_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
   })
-  categories?: NewsCategory[];
+  categories?: NewsCategory[] | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
@@ -55,5 +55,5 @@ export class News {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
-  deletedAt?: Date;
+  deletedAt?: Date | null;
 }
