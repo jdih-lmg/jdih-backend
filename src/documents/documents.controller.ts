@@ -118,7 +118,7 @@ export class DocumentsController {
 
   // delete document by id
   @Delete(':id')
-  @Permission('dokumen', 'delete')
+  @Permission('dokumen', 'manage')
   async deleteDocumentByIdController(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('id') userId: number,
@@ -134,7 +134,7 @@ export class DocumentsController {
 
   // get all deleted documents
   @Get('deleted/list')
-  @Permission('dokumen', 'delete')
+  @Permission('dokumen', 'manage')
   async getlAllDeletedDocumentsController() {
     const docs = await this.documentsService.getAllDeletedDocumentsService();
 
@@ -147,7 +147,7 @@ export class DocumentsController {
 
   // restore deleted document by id
   @Patch('restore/:id')
-  @Permission('dokumen', 'delete')
+  @Permission('dokumen', 'manage')
   async restoreDeletedDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
     const doc = await this.documentsService.restoreDeletedDocumentByIdService(id);
 

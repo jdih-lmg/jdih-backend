@@ -100,7 +100,6 @@ export class DocumentsService {
       message: 'Berhasil mendapatkan daftar dokumen',
       meta: {
         page,
-        limit,
         total,
         last_page: Math.ceil(total / limit),
       },

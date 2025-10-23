@@ -76,8 +76,8 @@ export class DocumentVersionsController {
     return {
       message: 'Berhasil mendapatkan semua versi dokumen',
       success: true,
-      data: this.toDocumentVersionsResponse(data),
       meta,
+      data: this.toDocumentVersionsResponse(data),
     };
   }
 
@@ -180,7 +180,7 @@ export class DocumentVersionsController {
 
   // delete version
   @Delete(':id')
-  @Permission('dokumen-versi', 'delete')
+  @Permission('dokumen-versi', 'manage')
   async deleteDocumentVersionByIdController(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('userId') userId: number,
@@ -196,7 +196,7 @@ export class DocumentVersionsController {
 
   // get all deleted versions
   @Get('deleted/list')
-  @Permission('dokumen-versi', 'read')
+  @Permission('dokumen-versi', 'manage')
   async getAllDeletedDocumentVersionsController() {
     const deleted = await this.versionsService.getAllDeletedDocumentVersionsService();
 
@@ -209,7 +209,7 @@ export class DocumentVersionsController {
 
   // restore version
   @Patch('restore/:id')
-  @Permission('dokumen-versi', 'update')
+  @Permission('dokumen-versi', 'manage')
   async restoreDeletedDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.restoreDeletedDocumentVersionByIdService(id);
 
