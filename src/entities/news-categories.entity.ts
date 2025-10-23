@@ -5,6 +5,7 @@ import {
   ManyToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { News } from './news.entity';
 
@@ -19,15 +20,18 @@ export class NewsCategory {
   @Column({ length: 100, unique: true })
   slug: string;
 
-  @Column({ length: 255, nullable: true })
-  description?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  description?: string | null;
 
   @ManyToMany(() => News, (news) => news.categories)
-  news?: News[];
+  news?: News[] | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deleted_at?: Date | null;
 }

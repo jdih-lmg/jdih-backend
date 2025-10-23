@@ -17,6 +17,35 @@ export class NewsService {
     private readonly auditLogs: AuditLogsService,
   ) {}
 
+  // mapping data response news
+  formatNewsResponse(news: News) {
+    return {
+      id: news.id,
+      title: news.title,
+      slug: news.slug,
+      content: news.content,
+      thumbnail_url: news.thumbnailUrl,
+      is_published: news.isPublished,
+      published_at: news.publishedAt,
+      created_at: news.createdAt,
+      updated_at: news.updatedAt,
+      author: news.author
+        ? {
+            id: news.author.id,
+            name: news.author.name,
+            email: news.author.email,
+          }
+        : null,
+      categories: news.categories
+        ? news.categories.map((cat) => ({
+            id: cat.id,
+            name: cat.name,
+            description: cat.description,
+          }))
+        : [],
+    };
+  }
+
   // get all news pagination and search
   async getAllNewsPaginationService(page: number, limit: number, search?: string) {
     const skip = (page - 1) * limit;
@@ -40,16 +69,8 @@ export class NewsService {
         page,
         last_page: Math.ceil(total / limit),
       },
-      data,
+      data: data.map((news) => this.formatNewsResponse(news)),
     };
-  }
-
-  // get all news
-  async getAllNewsService(): Promise<News[]> {
-    return this.newsRepo.find({
-      relations: ['author', 'categories'],
-      order: { createdAt: 'DESC' },
-    });
   }
 
   // get news by id
@@ -61,21 +82,25 @@ export class NewsService {
 
     if (!news) throw new NotFoundException(`Berita dengan ID ${id} tidak ditemukan`);
 
-    return news;
+    return this.formatNewsResponse(news) as unknown as News;
   }
 
   // create news
   async createNewsService(dto: CreateNewsDto, userId?: number): Promise<News> {
     const data = this.validationService.validate(createNewsSchema, dto);
 
-    const categories =
+    const resCategories =
       data.category_ids && data.category_ids?.length
         ? await this.newsCategoryRepo.findBy({ id: In(data.category_ids) })
         : [];
 
     const news = this.newsRepo.create({
       ...data,
-      categories,
+      categories: resCategories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        description: cat.description,
+      })),
       author: userId ? ({ id: userId } as User) : undefined,
     });
 
@@ -90,7 +115,7 @@ export class NewsService {
       saved,
     );
 
-    return saved;
+    return this.formatNewsResponse(saved) as unknown as News;
   }
 
   // update news
@@ -119,7 +144,7 @@ export class NewsService {
       saved,
     );
 
-    return saved;
+    return this.formatNewsResponse(saved) as unknown as News;
   }
 
   // delete news
@@ -186,7 +211,7 @@ export class NewsService {
       published,
     );
 
-    return published;
+    return this.formatNewsResponse(await published) as unknown as News;
   }
 
   // unpublish news service
@@ -209,6 +234,6 @@ export class NewsService {
       unpublished,
     );
 
-    return unpublished;
+    return this.formatNewsResponse(await unpublished) as unknown as News;
   }
 }

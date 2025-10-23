@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -138,7 +139,7 @@ export class NewsController {
   }
 
   // restore deleted news by id
-  @Put('restore/:id')
+  @Patch('restore/:id')
   @Permission('berita', 'manage')
   async restoreDeletedNewsByIdController(@Param('id') id: number) {
     const data = await this.newsService.restoreDeletedNewsService(id);
