@@ -12,10 +12,20 @@ export const createDocumentSchema = z.object({
   category_id: z.number().optional(),
   publisher: z.string().optional(),
   signed_by: z.string().optional(),
-  date_signed: z.date().optional(),
-  effective_date: z.date().optional(),
-  file_url: z.url().optional(),
-  verification_date: z.date().optional(),
+  date_signed: z
+    .string()
+    .optional()
+    .transform((v) => (v ? new Date(v) : undefined)),
+  effective_date: z
+    .string()
+    .optional()
+    .transform((v) => (v ? new Date(v) : undefined)),
+  verification_date: z
+    .string()
+    .optional()
+    .transform((v) => (v ? new Date(v) : undefined)),
+
+  file_url: z.string().url().optional(),
   verified_by: z.number().optional(),
 });
 

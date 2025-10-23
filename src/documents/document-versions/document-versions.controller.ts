@@ -23,9 +23,10 @@ import { DocumentVersion } from 'src/entities/document-versions.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
+import { PermissionGuard } from 'src/auth/guards/permission.guard';
 
 @Controller('document-versions')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class DocumentVersionsController {
   constructor(private readonly versionsService: DocumentVersionsService) {}
 
@@ -75,8 +76,8 @@ export class DocumentVersionsController {
     return {
       message: 'Berhasil mendapatkan semua versi dokumen',
       success: true,
-      data: this.toDocumentVersionsResponse(data),
       meta,
+      data: this.toDocumentVersionsResponse(data),
     };
   }
 
@@ -179,7 +180,7 @@ export class DocumentVersionsController {
 
   // delete version
   @Delete(':id')
-  @Permission('dokumen-versi', 'delete')
+  @Permission('dokumen-versi', 'manage')
   async deleteDocumentVersionByIdController(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('userId') userId: number,
@@ -195,7 +196,7 @@ export class DocumentVersionsController {
 
   // get all deleted versions
   @Get('deleted/list')
-  @Permission('dokumen-versi', 'read')
+  @Permission('dokumen-versi', 'manage')
   async getAllDeletedDocumentVersionsController() {
     const deleted = await this.versionsService.getAllDeletedDocumentVersionsService();
 
@@ -208,7 +209,7 @@ export class DocumentVersionsController {
 
   // restore version
   @Patch('restore/:id')
-  @Permission('dokumen-versi', 'update')
+  @Permission('dokumen-versi', 'manage')
   async restoreDeletedDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.restoreDeletedDocumentVersionByIdService(id);
 

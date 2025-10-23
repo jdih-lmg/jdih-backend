@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
 import { DocumentsModule } from './documents/documents.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { RoleModule } from './role/role.module';
+import { NewsModule } from './news/news.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { RoleModule } from './role/role.module';
     DocumentsModule,
     AuditLogsModule,
     RoleModule,
+    NewsModule,
   ],
   controllers: [AppController],
   providers: [],

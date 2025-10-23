@@ -20,9 +20,10 @@ import type {
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
+import { PermissionGuard } from 'src/auth/guards/permission.guard';
 
 @Controller('document-category')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class DocumentCategoryController {
   constructor(private readonly categoriesService: DocumentCategoryService) {}
 
@@ -34,7 +35,20 @@ export class DocumentCategoryController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('search') search?: string,
   ) {
-    return this.categoriesService.getAllDocumentCategoriesPaginationService(page, limit, search);
+    const categories = await this.categoriesService.getAllDocumentCategoriesPaginationService(
+      page,
+      limit,
+      search,
+    );
+
+    const { data, ...meta } = categories;
+
+    return {
+      message: 'Berhasil mendapatkan daftar kategori dokumen',
+      success: true,
+      meta,
+      data,
+    };
   }
 
   // get all document categories
@@ -98,7 +112,7 @@ export class DocumentCategoryController {
 
   // delete document category by id
   @Delete(':id')
-  @Permission('dokumen-kategori', 'delete')
+  @Permission('dokumen-kategori', 'manage')
   async deleteDocumentCategoryByIdController(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('userId') userId: number,
@@ -114,7 +128,7 @@ export class DocumentCategoryController {
 
   // get all deleted document categories
   @Get('deleted/list')
-  @Permission('dokumen-kategori', 'read')
+  @Permission('dokumen-kategori', 'manage')
   async getAllDeletedDocumentCategoriesController() {
     const deleted = await this.categoriesService.getAllDeletedDocumentCategoriesService();
 
@@ -127,7 +141,7 @@ export class DocumentCategoryController {
 
   // restore deleted document category by id
   @Patch('restore/:id')
-  @Permission('dokumen-kategori', 'update')
+  @Permission('dokumen-kategori', 'manage')
   async restoreDeletedDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.restoreDeletedDocumentCategoryService(id);
 

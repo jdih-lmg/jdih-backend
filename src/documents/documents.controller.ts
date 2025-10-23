@@ -12,16 +12,19 @@ import {
   Patch,
   Query,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
+import type { AuthUser } from 'src/auth/auth-user.interface';
 import { DocumentsService } from './documents.service';
 import type { CreateDocumentDto, UpdateDocumentDto } from './dto/document.dto';
 import type { DocumentQueryDto } from './dto/document-query.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
+import { PermissionGuard } from 'src/auth/guards/permission.guard';
 
 @Controller('documents')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
@@ -66,7 +69,7 @@ export class DocumentsController {
   @Permission('dokumen', 'create')
   async createDocumentConroller(
     @Body() body: CreateDocumentDto,
-    @CurrentUser('userId') userId: number,
+    @CurrentUser('id') userId: number,
   ) {
     const doc = await this.documentsService.createDocumentService(body, userId);
 
@@ -83,7 +86,7 @@ export class DocumentsController {
   async updateDocumentByIdController(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateDocumentDto,
-    @CurrentUser('userId') userId: number,
+    @CurrentUser('id') userId: number,
   ) {
     const doc = await this.documentsService.updateDocumentByIdService(id, body, userId);
 
@@ -94,12 +97,31 @@ export class DocumentsController {
     };
   }
 
+  // update document status by id
+  @Patch(':id/status')
+  @Permission('dokumen', 'verify')
+  async changeDocumentStatusByIdController(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('status') status: 'draft' | 'verified' | 'published' | 'archived',
+    @CurrentUser() user: AuthUser,
+  ) {
+    if (!status) throw new BadRequestException('status harus diisi');
+
+    const result = await this.documentsService.changeDocumentStatusByIdService(id, status, user);
+
+    return {
+      message: `Berhasil mengubah status dokumen dengan id ${id} menjadi ${status}`,
+      success: true,
+      data: result,
+    };
+  }
+
   // delete document by id
   @Delete(':id')
-  @Permission('dokumen', 'delete')
+  @Permission('dokumen', 'manage')
   async deleteDocumentByIdController(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser('userId') userId: number,
+    @CurrentUser('id') userId: number,
   ) {
     const doc = await this.documentsService.deleteDocumentByIdService(id, userId);
 
@@ -112,7 +134,7 @@ export class DocumentsController {
 
   // get all deleted documents
   @Get('deleted/list')
-  @Permission('dokumen', 'read')
+  @Permission('dokumen', 'manage')
   async getlAllDeletedDocumentsController() {
     const docs = await this.documentsService.getAllDeletedDocumentsService();
 
@@ -125,7 +147,7 @@ export class DocumentsController {
 
   // restore deleted document by id
   @Patch('restore/:id')
-  @Permission('dokumen', 'update')
+  @Permission('dokumen', 'manage')
   async restoreDeletedDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
     const doc = await this.documentsService.restoreDeletedDocumentByIdService(id);
 

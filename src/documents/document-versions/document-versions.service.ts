@@ -36,8 +36,8 @@ export class DocumentVersionsService {
 
     return {
       data,
-      total,
       page,
+      total,
       last_page: Math.ceil(total / limit),
     };
   }
