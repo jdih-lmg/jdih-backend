@@ -20,6 +20,7 @@ import { PermissionGuard } from 'src/auth/guards/permission.guard';
 import { Permission } from 'src/auth/decorators/permission.decorator';
 import type { CreateNewsCategoryDto, UpdateNewsCategoryDto } from '../dto/news-categories.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('news-categories')
 @UseGuards(JwtAuthGuard, PermissionGuard)
@@ -28,7 +29,7 @@ export class NewsCategoriesController {
 
   // get all news categories pagination
   @Get('list')
-  @Permission('berita-kategori', 'read')
+  @Public()
   async getAllNewsCategoriesPagination(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -51,7 +52,7 @@ export class NewsCategoriesController {
 
   // get news category by id
   @Get(':id')
-  @Permission('berita-kategori', 'read')
+  @Public()
   async getNewsCategoryById(@Param('id') id: number) {
     const data = await this.newsCategoryService.getNewsCategoryByIdService(id);
 

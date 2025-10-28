@@ -85,6 +85,17 @@ export class NewsService {
     return this.formatNewsResponse(news) as unknown as News;
   }
 
+  // get all published news
+  async getAllPublishedNewsService(): Promise<News[]> {
+    const news = await this.newsRepo.find({
+      where: { isPublished: true, deletedAt: IsNull() },
+      relations: ['author', 'categories'],
+      order: { publishedAt: 'DESC' },
+    });
+
+    return news.map((n) => this.formatNewsResponse(n) as unknown as News);
+  }
+
   // create news
   async createNewsService(dto: CreateNewsDto, userId?: number): Promise<News> {
     const data = this.validationService.validate(createNewsSchema, dto);

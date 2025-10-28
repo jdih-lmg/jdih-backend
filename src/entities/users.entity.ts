@@ -13,7 +13,6 @@ import { Role } from './roles.entity';
 import { Document } from './documents.entity';
 import { AuditLog } from './audit-logs.entity';
 import { News } from './news.entity';
-import { VisitorStat } from './visitor-stats.entity';
 
 @Entity('users')
 export class User {
@@ -59,7 +58,4 @@ export class User {
 
   @OneToMany(() => News, (news) => news.author)
   news?: News[];
-
-  @OneToMany(() => VisitorStat, (stat) => stat.user)
-  visitorStats?: VisitorStat[];
 }
