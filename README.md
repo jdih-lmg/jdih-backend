@@ -68,7 +68,7 @@ Client (Frontend / Public / Admin)
 └─────────────────────────────┘
 ```
 
-## 🛠️ Teknoligu yang Digunakan
+## 🛠️ Teknologi yang Digunakan
 
 | Teknologi             | Deskripsi                                                          |
 | --------------------- | ------------------------------------------------------------------ |
@@ -82,7 +82,7 @@ Client (Frontend / Public / Admin)
 | **ESLint + Prettier** | Standarisasi dan formatting kode.                                  |
 
 ## 📁 Struktur Folder Utama
-
+```bash
 src/
  ┣ audit-logs/
  ┣ auth/
@@ -103,6 +103,7 @@ news/ → Modul berita dan kategori
 visitor-stats/ → Middleware pencatat pengunjung
 audit-logs/ → Logging aktivitas admin
 common/ → Filter, interceptor, dan validasi global
+```
 
 ## ⚙️ Cara Menjalankan Proyek
 ### 1️⃣ Clone Repository
