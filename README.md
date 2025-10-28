@@ -171,10 +171,12 @@ Entitas utama:
 - audit_logs
 
 ## 🧑‍💻 Pengembang
+```
 Nama: Miftachul Huda
 Peran: Backend Developer
 Teknologi utama: NestJS, TypeORM, MySQL
 Kontak: miftachulhd5@gmail.com
+```
 
 ## 📜 Lisensi
 Proyek ini dikembangkan untuk keperluan portofolio pribadi dan tidak untuk tujuan komersial.
