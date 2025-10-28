@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
@@ -19,6 +19,8 @@ import { DocumentsModule } from './documents/documents.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { RoleModule } from './role/role.module';
 import { NewsModule } from './news/news.module';
+import { VisitorStatsModule } from './visitor-stats/visitor-stats.module';
+import { VisitorLoggerMiddleware } from './visitor-stats/visitor-logger.middleware';
 
 @Module({
   imports: [
@@ -54,8 +56,19 @@ import { NewsModule } from './news/news.module';
     AuditLogsModule,
     RoleModule,
     NewsModule,
+    VisitorStatsModule,
   ],
   controllers: [AppController],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(VisitorLoggerMiddleware)
+      .forRoutes(
+        { path: 'documents/(.*)', method: RequestMethod.GET },
+        { path: 'news/(.*)', method: RequestMethod.GET },
+        { path: 'public/(.*)', method: RequestMethod.GET },
+      );
+  }
+}

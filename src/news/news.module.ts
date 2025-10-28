@@ -11,6 +11,8 @@ import { AuditLog } from 'src/entities/audit-logs.entity';
 import { RoleMenuPermission } from 'src/entities/role-menu-permissions.entity';
 import { Menu } from 'src/entities/menus.entity';
 import { Action } from 'src/entities/actions.entity';
+import { NewsCategoriesService } from './news-categories/news-categories.service';
+import { NewsCategoriesController } from './news-categories/news-categories.controller';
 
 @Module({
   imports: [
@@ -24,8 +26,8 @@ import { Action } from 'src/entities/actions.entity';
       AuditLog,
     ]),
   ],
-  providers: [NewsService, ValidationService, AuditLogsService],
-  controllers: [NewsController],
-  exports: [NewsService],
+  providers: [NewsService, ValidationService, AuditLogsService, NewsCategoriesService],
+  controllers: [NewsController, NewsCategoriesController],
+  exports: [NewsService, NewsCategoriesService],
 })
 export class NewsModule {}

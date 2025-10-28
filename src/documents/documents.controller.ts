@@ -22,6 +22,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
 import { PermissionGuard } from 'src/auth/guards/permission.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('documents')
 @UseGuards(JwtAuthGuard, PermissionGuard)
@@ -30,7 +31,7 @@ export class DocumentsController {
 
   // get all documents with pagination and filters
   @Get('list')
-  @Permission('dokumen', 'read')
+  @Public()
   async getAllDocumentsPaginationController(@Query() query: DocumentQueryDto) {
     const docs = await this.documentsService.getAllDocumentsPaginationService(query);
 
@@ -39,7 +40,7 @@ export class DocumentsController {
 
   // get all documents
   @Get()
-  @Permission('dokumen', 'read')
+  @Public()
   async getAllDocumentsController() {
     const docs = await this.documentsService.getAllDocumentsService();
 
@@ -52,7 +53,7 @@ export class DocumentsController {
 
   // get document by id
   @Get(':id')
-  @Permission('dokumen', 'read')
+  @Public()
   async getDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
     const doc = await this.documentsService.getDocumentByIdService(id);
 

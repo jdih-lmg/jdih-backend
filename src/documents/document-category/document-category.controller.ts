@@ -21,6 +21,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
 import { PermissionGuard } from 'src/auth/guards/permission.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('document-category')
 @UseGuards(JwtAuthGuard, PermissionGuard)
@@ -29,7 +30,7 @@ export class DocumentCategoryController {
 
   // get all document categories with pagination or search
   @Get('list')
-  @Permission('dokumen-kategori', 'read')
+  @Public()
   async getAllDocumentCategoriesWithPaginationController(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -53,7 +54,7 @@ export class DocumentCategoryController {
 
   // get all document categories
   @Get()
-  @Permission('dokumen-kategori', 'read')
+  @Public()
   async getAllDocumentCategoriesController() {
     const categories = await this.categoriesService.getAllDocumentCategoriesService();
 
@@ -66,7 +67,7 @@ export class DocumentCategoryController {
 
   // get document category by id
   @Get(':id')
-  @Permission('dokumen-kategori', 'read')
+  @Public()
   async getDocumentCategoryByIdController(@Param('id', ParseIntPipe) id: number) {
     const category = await this.categoriesService.getDocumentCategoryByIdService(id);
 

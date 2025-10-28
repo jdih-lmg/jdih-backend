@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -19,6 +20,7 @@ import { PermissionGuard } from 'src/auth/guards/permission.guard';
 import { Permission } from 'src/auth/decorators/permission.decorator';
 import type { UpdateNewsDto, CreateNewsDto } from './dto/news.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('news')
 @UseGuards(JwtAuthGuard, PermissionGuard)
@@ -27,7 +29,7 @@ export class NewsController {
 
   // get all news pagination
   @Get()
-  @Permission('berita', 'read')
+  @Public()
   async getAllNewsController(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -40,12 +42,25 @@ export class NewsController {
 
   // get news by id
   @Get(':id')
-  @Permission('berita', 'read')
+  @Public()
   async getNewsByIdController(@Param('id') id: number) {
     const data = await this.newsService.getNewsByIdService(id);
 
     return {
       message: 'Berhasil mengambil data berita',
+      success: true,
+      data,
+    };
+  }
+
+  // get all published news
+  @Get('published/list')
+  @Public()
+  async getAllPublishedNewsController() {
+    const data = await this.newsService.getAllPublishedNewsService();
+
+    return {
+      message: 'Berhasil mengambil daftar berita terbit',
       success: true,
       data,
     };
@@ -138,7 +153,7 @@ export class NewsController {
   }
 
   // restore deleted news by id
-  @Put('restore/:id')
+  @Patch('restore/:id')
   @Permission('berita', 'manage')
   async restoreDeletedNewsByIdController(@Param('id') id: number) {
     const data = await this.newsService.restoreDeletedNewsService(id);

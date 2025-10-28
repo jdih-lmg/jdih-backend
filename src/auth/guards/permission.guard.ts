@@ -6,6 +6,7 @@ import { RoleMenuPermission } from 'src/entities/role-menu-permissions.entity';
 import { Menu } from 'src/entities/menus.entity';
 import { Action } from 'src/entities/actions.entity';
 import { AuthUser } from '../auth-user.interface';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
@@ -20,6 +21,14 @@ export class PermissionGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // cek apakah route diberikan decorator @Public
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) return true;
+
     const req = context.switchToHttp().getRequest<{ user: AuthUser }>();
     const user = req.user;
 

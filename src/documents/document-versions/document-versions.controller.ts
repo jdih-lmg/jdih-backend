@@ -24,6 +24,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
 import { PermissionGuard } from 'src/auth/guards/permission.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('document-versions')
 @UseGuards(JwtAuthGuard, PermissionGuard)
@@ -59,7 +60,7 @@ export class DocumentVersionsController {
 
   // get all versions with pagination or search
   @Get('list')
-  @Permission('dokumen-versi', 'read')
+  @Public()
   async getAllDocumentVersionsPaginationController(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -83,7 +84,7 @@ export class DocumentVersionsController {
 
   // get all versions
   @Get()
-  @Permission('dokumen-versi', 'read')
+  @Public()
   async getAllDocumentVersionsController() {
     const versions = await this.versionsService.getAllDocumentVersionsService();
 
@@ -96,7 +97,7 @@ export class DocumentVersionsController {
 
   // get all versions by document id
   @Get('documents/:documentId/versions')
-  @Permission('dokumen-versi', 'read')
+  @Public()
   async getAllDocumentVersionsByDocumentIdController(
     @Param('documentId', ParseIntPipe) documentId: number,
   ) {
@@ -112,7 +113,7 @@ export class DocumentVersionsController {
 
   // get version by id
   @Get(':id')
-  @Permission('dokumen-versi', 'read')
+  @Public()
   async getDocumentVersionByIdController(@Param('id', ParseIntPipe) id: number) {
     const version = await this.versionsService.getDocumentVersionByIdService(id);
 
