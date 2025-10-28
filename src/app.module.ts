@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
@@ -63,6 +63,12 @@ import { VisitorLoggerMiddleware } from './visitor-stats/visitor-logger.middlewa
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(VisitorLoggerMiddleware).forRoutes('*');
+    consumer
+      .apply(VisitorLoggerMiddleware)
+      .forRoutes(
+        { path: 'documents/(.*)', method: RequestMethod.GET },
+        { path: 'news/(.*)', method: RequestMethod.GET },
+        { path: 'public/(.*)', method: RequestMethod.GET },
+      );
   }
 }
