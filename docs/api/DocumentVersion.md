@@ -2,29 +2,112 @@
 
 Base URL: `/api/document-versions`
 
-**Authentication Required:** Ya  
-**Role Required:** ADMIN untuk create/update/delete, USER untuk read
+Authentication:
+
+- Public: GET /, GET /list, GET /:id, GET /documents/:documentId/versions
+- Protected (JWT + PermissionGuard): POST, PUT, DELETE, GET /deleted/list, PATCH /restore/:id
+
+Permission module: `dokumen-versi`  
+Actions: `create`, `update`, `manage`
+
+Proteksi & Error:
+
+- Guard: JwtAuthGuard + PermissionGuard (lihat `permission.decorator.ts` dan `permission.guard.ts`)
+- Error seragam oleh AllExceptionFilter:
+  {
+  "message": string,
+  "success": false,
+  "data": null,
+  "path": string,
+  "timestamp": string
+  }
+
+Implementasi:
+
+- Controller: [`document-versions.controller.ts`](../../src/documents/document-versions/document-versions.controller.ts)
+- Service: [`document-versions.service.ts`](../../src/documents/document-versions/document-versions.service.ts)
+- Entity: [`DocumentVersion`](../../src/entities/document-versions.entity.ts)
+
+---
+
+## Entity Structure
+
+```ts
+type DocumentVersion = {
+  id: number;
+  version_number: number;
+  file_url?: string | null;
+  notes?: string | null;
+
+  document?: {
+    id: number;
+    title: string;
+    abstract?: string | null;
+  } | null;
+
+  created_at: string;
+  created_by?: number | null;
+  updated_at?: string | null;
+  updated_by?: number | null;
+  deleted_at?: string | null;
+  deleted_by?: number | null;
+};
+```
+
+Catatan:
+
+- Field menggunakan snake_case sesuai entity (mis. `version_number`, `file_url`).
+- Endpoint GET memetakan relasi `document` menjadi ringkas: hanya `id`, `title`, `abstract`.
+
+---
 
 ## Endpoints
 
-### 1. GET /api/document-versions/list
+### 1) GET /api/document-versions/list
 
-Mendapatkan daftar versi dokumen dengan pagination dan pencarian.
+Daftar semua versi dokumen dengan pagination dan pencarian (berdasarkan `notes`).
 
-**Query Parameters:**
+Authentication: Public
 
-- `page` (number, optional, default: 1)
-- `limit` (number, optional, default: 10)
-- `search` (string, optional) - Pencarian berdasarkan notes
+Query:
 
-**Contoh Request:**
+- page (number, default: 1)
+- limit (number, default: 10)
+- search (string, optional) — pencarian di kolom `notes` (case-insensitive)
 
-```bash
-GET /api/document-versions/list?page=1&limit=10&search=amandemen
-Authorization: Bearer <token>
+Response 200:
+
+```json
+{
+  "message": "Berhasil mendapatkan semua versi dokumen",
+  "success": true,
+  "meta": { "page": 1, "total": 25, "last_page": 3 },
+  "data": [
+    {
+      "id": 3,
+      "version_number": 2,
+      "file_url": "/uploads/documents/versions/perbup-5-2025-v2.pdf",
+      "notes": "Revisi setelah verifikasi",
+      "document": { "id": 15, "title": "Perbup No. 5/2025", "abstract": "Ringkasan ..." },
+      "created_by": 2,
+      "updated_by": null,
+      "created_at": "2025-01-20T15:30:00.000Z",
+      "updated_at": null,
+      "deleted_at": null
+    }
+  ]
+}
 ```
 
-**Response 200:**
+---
+
+### 2) GET /api/document-versions
+
+Semua versi (tanpa pagination).
+
+Authentication: Public
+
+Response 200:
 
 ```json
 {
@@ -33,153 +116,93 @@ Authorization: Bearer <token>
   "data": [
     {
       "id": 1,
-      "version_number": 2,
-      "file_url": "https://example.com/doc-v2.pdf",
-      "notes": "Versi amandemen",
-      "document": {
-        "id": 4,
-        "title": "Peraturan Bupati No. 1 Tahun 2025",
-        "abstract": "Peraturan ini mengatur..."
-      },
+      "version_number": 1,
+      "file_url": "/uploads/documents/versions/perbup-5-2025-v1.pdf",
+      "notes": "Versi awal dokumen",
+      "document": { "id": 15, "title": "Perbup No. 5/2025", "abstract": "Ringkasan ..." },
       "created_by": 1,
       "updated_by": null,
       "created_at": "2025-01-15T10:00:00.000Z",
       "updated_at": null,
       "deleted_at": null
     }
-  ],
-  "meta": {
-    "total": 10,
-    "page": 1,
-    "last_page": 1
-  }
-}
-```
-
----
-
-### 2. GET /api/document-versions
-
-Mendapatkan semua versi dokumen tanpa pagination.
-
-**Contoh Request:**
-
-```bash
-GET /api/document-versions
-Authorization: Bearer <token>
-```
-
-**Response 200:**
-
-```json
-{
-  "message": "Berhasil mendapatkan semua versi dokumen",
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "version_number": 1,
-      "file_url": "https://example.com/doc.pdf",
-      "notes": "Versi awal",
-      "document": {
-        "id": 4,
-        "title": "Peraturan Bupati No. 1 Tahun 2025",
-        "abstract": "Peraturan ini mengatur..."
-      },
-      "created_by": 1,
-      "created_at": "2025-01-15T10:00:00.000Z"
-    }
   ]
 }
 ```
 
 ---
 
-### 3. GET /api/document-versions/documents/:documentId/versions
+### 3) GET /api/document-versions/documents/:documentId/versions
 
-Mendapatkan semua versi untuk dokumen tertentu.
+Semua versi untuk sebuah dokumen berdasarkan `documentId`.
 
-**Contoh Request:**
+Authentication: Public
 
-```bash
-GET /api/document-versions/documents/4/versions
-Authorization: Bearer <token>
-```
+Params:
 
-**Response 200:**
+- documentId (number)
+
+Response 200:
 
 ```json
 {
-  "message": "Berhasil mendapatkan semua versi dokumen dengan id dokumen 4",
+  "message": "Berhasil mendapatkan semua versi dokumen dengan id dokumen 15",
   "success": true,
   "data": [
     {
       "id": 1,
       "version_number": 1,
-      "file_url": "https://example.com/doc-v1.pdf",
-      "notes": "Versi awal",
-      "document": {
-        "id": 4,
-        "title": "Peraturan Bupati No. 1 Tahun 2025",
-        "abstract": "Peraturan ini mengatur..."
-      },
+      "file_url": "/uploads/documents/versions/perbup-5-2025-v1.pdf",
+      "notes": "Versi awal dokumen",
+      "document": { "id": 15, "title": "Perbup No. 5/2025", "abstract": "Ringkasan ..." },
       "created_at": "2025-01-15T10:00:00.000Z"
-    },
-    {
-      "id": 2,
-      "version_number": 2,
-      "file_url": "https://example.com/doc-v2.pdf",
-      "notes": "Revisi pasal 5",
-      "document": {
-        "id": 4,
-        "title": "Peraturan Bupati No. 1 Tahun 2025",
-        "abstract": "Peraturan ini mengatur..."
-      },
-      "created_at": "2025-01-16T10:00:00.000Z"
     }
   ]
 }
 ```
 
----
-
-### 4. GET /api/document-versions/:id
-
-Mendapatkan detail versi dokumen berdasarkan ID.
-
-**Contoh Request:**
-
-```bash
-GET /api/document-versions/1
-Authorization: Bearer <token>
-```
-
-**Response 200:**
+Error 404 (Dokumen tidak ditemukan):
 
 ```json
 {
-  "message": "Berhasil mendapatkan versi dokumen dengan id 1",
+  "message": "Dokumen dengan id 999 tidak ditemukan",
+  "success": false,
+  "data": null,
+  "path": "/api/document-versions/documents/999/versions",
+  "timestamp": "2025-10-29T11:00:00.000Z"
+}
+```
+
+---
+
+### 4) GET /api/document-versions/:id
+
+Detail versi berdasarkan ID.
+
+Authentication: Public
+
+Response 200:
+
+```json
+{
+  "message": "Berhasil mendapatkan versi dokumen dengan id 2",
   "success": true,
   "data": {
-    "id": 1,
+    "id": 2,
     "version_number": 2,
-    "file_url": "https://example.com/doc-v2.pdf",
-    "notes": "Perubahan pasal 5",
-    "document": {
-      "id": 4,
-      "title": "Peraturan Bupati No. 1 Tahun 2025",
-      "abstract": "Peraturan ini mengatur..."
-    },
-    "created_by": 1,
+    "file_url": "/uploads/documents/versions/perbup-5-2025-v2.pdf",
+    "notes": "Revisi setelah verifikasi",
+    "document": { "id": 15, "title": "Perbup No. 5/2025", "abstract": "Ringkasan ..." },
+    "created_by": 2,
     "updated_by": null,
-    "created_at": "2025-01-15T10:00:00.000Z",
+    "created_at": "2025-01-20T15:30:00.000Z",
     "updated_at": null,
     "deleted_at": null
   }
 }
 ```
 
-**Error 404:**
+Error 404:
 
 ```json
 {
@@ -187,45 +210,38 @@ Authorization: Bearer <token>
   "success": false,
   "data": null,
   "path": "/api/document-versions/999",
-  "timestamp": "2025-01-15T10:30:00.000Z"
+  "timestamp": "2025-10-29T11:00:00.000Z"
 }
 ```
 
 ---
 
-### 5. POST /api/document-versions
+### 5) POST /api/document-versions
 
-Membuat versi dokumen baru (dengan `document_id` di body).
+Membuat versi dokumen (document_id dikirim di body).
 
-**Role Required:** ADMIN
+Authentication: JWT  
+Permission Required: `dokumen-versi:create`
 
-**Request Body:**
+Request Body:
 
 ```json
 {
-  "document_id": "number (required, ID dokumen yang valid)",
-  "version_number": "number (required, min: 1)",
-  "file_url": "string (optional, max 255, valid URL)",
-  "notes": "string (optional, max 2000)"
-}
-```
-
-**Contoh Request:**
-
-```bash
-POST /api/document-versions
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "document_id": 4,
+  "document_id": 15,
   "version_number": 3,
-  "file_url": "https://example.com/doc-v3.pdf",
-  "notes": "Revisi final"
+  "file_url": "/uploads/documents/versions/perbup-5-2025-v3.pdf",
+  "notes": "Revisi lampiran"
 }
 ```
 
-**Response 201:**
+Validation (berdasarkan service + entity):
+
+- document_id: number, required (harus ada di tabel documents)
+- version_number: number, required
+- file_url: string, optional, max 255
+- notes: string, optional
+
+Response 201:
 
 ```json
 {
@@ -233,17 +249,17 @@ Content-Type: application/json
   "success": true,
   "data": {
     "id": 3,
-    "document_id": 4,
     "version_number": 3,
-    "file_url": "https://example.com/doc-v3.pdf",
-    "notes": "Revisi final",
-    "created_at": "2025-01-15T10:00:00.000Z",
-    "created_by": 1
+    "file_url": "/uploads/documents/versions/perbup-5-2025-v3.pdf",
+    "notes": "Revisi lampiran",
+    "document": { "id": 15, "title": "Perbup No. 5/2025", "abstract": "Ringkasan ..." },
+    "created_by": 1,
+    "created_at": "2025-10-29T11:00:00.000Z"
   }
 }
 ```
 
-**Error 404:**
+Error 404 (Dokumen tidak ditemukan):
 
 ```json
 {
@@ -251,171 +267,147 @@ Content-Type: application/json
   "success": false,
   "data": null,
   "path": "/api/document-versions",
-  "timestamp": "2025-01-15T10:30:00.000Z"
+  "timestamp": "2025-10-29T11:00:00.000Z"
 }
 ```
 
 ---
 
-### 6. POST /api/document-versions/documents/:documentId/versions
+### 6) POST /api/document-versions/documents/:documentId/versions
 
-Membuat versi dokumen baru (dengan `documentId` di URL).
+Alternatif pembuatan versi di bawah path dokumen (document_id dari URL).
 
-**Role Required:** ADMIN
+Authentication: JWT  
+Permission Required: `dokumen-versi:create`
 
-**Request Body:**
+Params:
+
+- documentId (number)
+
+Request Body:
 
 ```json
-{
-  "version_number": "number (required, min: 1)",
-  "file_url": "string (optional, valid URL)",
-  "notes": "string (optional)"
-}
-```
-
-**Contoh Request:**
-
-```bash
-POST /api/document-versions/documents/4/versions
-Authorization: Bearer <token>
-Content-Type: application/json
-
 {
   "version_number": 4,
-  "file_url": "https://example.com/doc-v4.pdf",
-  "notes": "Perubahan lampiran"
+  "file_url": "/uploads/documents/versions/perbup-5-2025-v4.pdf",
+  "notes": "Revisi final"
 }
 ```
 
-**Response 201:**
+Response 201:
 
 ```json
 {
-  "message": "Versi dokumen untuk dokumen 4 berhasil dibuat",
+  "message": "Versi dokumen untuk dokumen 15 berhasil dibuat",
   "success": true,
   "data": {
     "id": 4,
     "version_number": 4,
-    "file_url": "https://example.com/doc-v4.pdf",
-    "notes": "Perubahan lampiran",
-    "document": {
-      "id": 4,
-      "title": "Peraturan Bupati No. 1 Tahun 2025",
-      "abstract": "Peraturan ini mengatur..."
-    },
-    "created_at": "2025-01-15T10:00:00.000Z",
-    "created_by": 1
+    "file_url": "/uploads/documents/versions/perbup-5-2025-v4.pdf",
+    "notes": "Revisi final",
+    "document": { "id": 15, "title": "Perbup No. 5/2025", "abstract": "Ringkasan ..." },
+    "created_by": 1,
+    "created_at": "2025-10-29T11:20:00.000Z"
   }
 }
 ```
 
 ---
 
-### 7. PUT /api/document-versions/:id
+### 7) PUT /api/document-versions/:id
 
-Memperbarui versi dokumen berdasarkan ID.
+Update informasi versi (sebagian/seluruh field).
 
-**Role Required:** ADMIN
+Authentication: JWT  
+Permission Required: `dokumen-versi:update`
 
-**Request Body:** (semua field optional)
-
-```json
-{
-  "document_id": "number",
-  "version_number": "number",
-  "file_url": "string",
-  "notes": "string"
-}
-```
-
-**Contoh Request:**
-
-```bash
-PUT /api/document-versions/1
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "notes": "Revisi pasal 5 dan 7",
-  "file_url": "https://example.com/doc-v2-updated.pdf"
-}
-```
-
-**Response 200:**
+Request Body (semua optional):
 
 ```json
 {
-  "message": "Versi dokumen dengan id 1 berhasil diupdate",
+  "version_number": 3,
+  "file_url": "/uploads/documents/versions/perbup-5-2025-v3-updated.pdf",
+  "notes": "Revisi lampiran - updated"
+}
+```
+
+Response 200:
+
+```json
+{
+  "message": "Versi dokumen dengan id 3 berhasil diupdate",
   "success": true,
   "data": {
-    "id": 1,
-    "version_number": 2,
-    "file_url": "https://example.com/doc-v2-updated.pdf",
-    "notes": "Revisi pasal 5 dan 7",
-    "updated_at": "2025-01-15T11:00:00.000Z",
-    "updated_by": 1
+    "id": 3,
+    "version_number": 3,
+    "file_url": "/uploads/documents/versions/perbup-5-2025-v3-updated.pdf",
+    "notes": "Revisi lampiran - updated",
+    "updated_by": 1,
+    "updated_at": "2025-10-29T12:00:00.000Z"
   }
+}
+```
+
+Error 404:
+
+```json
+{
+  "message": "Versi dokumen dengan id 999 tidak ditemukan",
+  "success": false,
+  "data": null,
+  "path": "/api/document-versions/999",
+  "timestamp": "2025-10-29T12:00:00.000Z"
 }
 ```
 
 ---
 
-### 8. DELETE /api/document-versions/:id
+### 8) DELETE /api/document-versions/:id
 
-Soft delete versi dokumen berdasarkan ID.
+Soft delete versi dokumen.
 
-**Role Required:** ADMIN
+Authentication: JWT  
+Permission Required: `dokumen-versi:manage`
 
-**Contoh Request:**
-
-```bash
-DELETE /api/document-versions/1
-Authorization: Bearer <token>
-```
-
-**Response 200:**
+Response 200:
 
 ```json
 {
-  "message": "Versi dokumen dengan id 1 berhasil dihapus",
+  "message": "Versi dokumen dengan id 3 berhasil dihapus",
   "success": true,
   "data": {
-    "id": 1,
-    "version_number": 2,
-    "deleted_at": "2025-01-15T12:00:00.000Z",
+    "id": 3,
+    "version_number": 3,
+    "file_url": "/uploads/documents/versions/perbup-5-2025-v3-updated.pdf",
+    "notes": "Revisi lampiran - updated",
+    "deleted_at": "2025-10-29T12:30:00.000Z",
     "deleted_by": 1
   }
 }
 ```
 
-**Error 404:**
+Error 404 (sudah dihapus):
 
 ```json
 {
-  "message": "Versi dokumen dengan id 1 sudah dihapus",
+  "message": "Versi dokumen dengan id 3 sudah dihapus",
   "success": false,
   "data": null,
-  "path": "/api/document-versions/1",
-  "timestamp": "2025-01-15T12:00:00.000Z"
+  "path": "/api/document-versions/3",
+  "timestamp": "2025-10-29T12:35:00.000Z"
 }
 ```
 
 ---
 
-### 9. GET /api/document-versions/deleted/list
+### 9) GET /api/document-versions/deleted/list
 
-Mendapatkan semua versi dokumen yang sudah di-soft delete.
+Daftar versi yang sudah dihapus (soft-deleted).
 
-**Role Required:** ADMIN
+Authentication: JWT  
+Permission Required: `dokumen-versi:manage`
 
-**Contoh Request:**
-
-```bash
-GET /api/document-versions/deleted/list
-Authorization: Bearer <token>
-```
-
-**Response 200:**
+Response 200:
 
 ```json
 {
@@ -423,11 +415,11 @@ Authorization: Bearer <token>
   "success": true,
   "data": [
     {
-      "id": 1,
-      "version_number": 2,
-      "file_url": "https://example.com/doc-v2.pdf",
-      "notes": "Versi amandemen",
-      "deleted_at": "2025-01-15T12:00:00.000Z",
+      "id": 3,
+      "version_number": 3,
+      "file_url": "/uploads/documents/versions/perbup-5-2025-v3-updated.pdf",
+      "notes": "Revisi lampiran - updated",
+      "deleted_at": "2025-10-29T12:30:00.000Z",
       "deleted_by": 1
     }
   ]
@@ -436,60 +428,123 @@ Authorization: Bearer <token>
 
 ---
 
-### 10. PATCH /api/document-versions/restore/:id
+### 10) PATCH /api/document-versions/restore/:id
 
-Mengembalikan versi dokumen yang sudah di-soft delete.
+Restore versi yang dihapus.
 
-**Role Required:** ADMIN
+Authentication: JWT  
+Permission Required: `dokumen-versi:manage`
 
-**Contoh Request:**
-
-```bash
-PATCH /api/document-versions/restore/1
-Authorization: Bearer <token>
-```
-
-**Response 200:**
+Response 200:
 
 ```json
 {
-  "message": "Versi dokumen dengan id 1 berhasil dikembalikan",
+  "message": "Versi dokumen dengan id 3 berhasil dikembalikan",
   "success": true,
   "data": {
-    "id": 1,
-    "version_number": 2,
-    "deleted_at": null,
-    "updated_at": "2025-01-15T13:00:00.000Z"
+    "id": 3,
+    "version_number": 3,
+    "file_url": "/uploads/documents/versions/perbup-5-2025-v3-updated.pdf",
+    "notes": "Revisi lampiran - updated",
+    "deleted_at": null
   }
 }
 ```
 
-**Error 404:**
+Error 404:
 
 ```json
 {
-  "message": "Versi dokumen dengan id 1 tidak ditemukan atau belum dihapus",
+  "message": "Versi dokumen dengan id 3 tidak ditemukan atau belum dihapus",
   "success": false,
   "data": null,
-  "path": "/api/document-versions/restore/1",
-  "timestamp": "2025-01-15T13:00:00.000Z"
+  "path": "/api/document-versions/restore/3",
+  "timestamp": "2025-10-29T12:45:00.000Z"
 }
 ```
 
 ---
 
-## Version Management
+## Permission Matrix
 
-- Setiap dokumen dapat memiliki **multiple versions**
-- `version_number` harus unik per dokumen
-- Versi yang lebih tinggi biasanya menandakan revisi terbaru
-- Soft delete memungkinkan restore versi lama jika diperlukan
+| Endpoint                             | Permission           |
+| ------------------------------------ | -------------------- |
+| GET /                                | - (Public)           |
+| GET /list                            | - (Public)           |
+| GET /:id                             | - (Public)           |
+| GET /documents/:documentId/versions  | - (Public)           |
+| POST /                               | dokumen-versi:create |
+| POST /documents/:documentId/versions | dokumen-versi:create |
+| PUT /:id                             | dokumen-versi:update |
+| DELETE /:id                          | dokumen-versi:manage |
+| GET /deleted/list                    | dokumen-versi:manage |
+| PATCH /restore/:id                   | dokumen-versi:manage |
 
-## Audit Logs
+---
 
-Setiap operasi CREATE, UPDATE, DELETE pada versi dokumen akan tercatat di **Audit Logs** dengan informasi:
+## cURL Examples
 
-- User yang melakukan aksi
-- Timestamp
-- Data lama dan data baru (untuk UPDATE)
-- Entity: `DocumentVersion`
+List (pagination + search):
+
+```bash
+curl "http://localhost:3000/api/document-versions/list?page=1&limit=10&search=verifikasi"
+```
+
+All:
+
+```bash
+curl "http://localhost:3000/api/document-versions"
+```
+
+By document:
+
+```bash
+curl "http://localhost:3000/api/document-versions/documents/15/versions"
+```
+
+Detail:
+
+```bash
+curl "http://localhost:3000/api/document-versions/2"
+```
+
+Create (body berisi document_id):
+
+```bash
+curl -X POST "http://localhost:3000/api/document-versions" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"document_id":15,"version_number":3,"file_url":"/uploads/documents/versions/perbup-5-2025-v3.pdf","notes":"Revisi lampiran"}'
+```
+
+Create (di bawah dokumen tertentu):
+
+```bash
+curl -X POST "http://localhost:3000/api/document-versions/documents/15/versions" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"version_number":4,"file_url":"/uploads/documents/versions/perbup-5-2025-v4.pdf","notes":"Revisi final"}'
+```
+
+Update:
+
+```bash
+curl -X PUT "http://localhost:3000/api/document-versions/3" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"notes":"Revisi lampiran - updated"}'
+```
+
+Delete:
+
+```bash
+curl -X DELETE "http://localhost:3000/api/document-versions/3" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+Restore:
+
+```bash
+curl -X PATCH "http://localhost:3000/api/document-versions/restore/3" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
