@@ -2,77 +2,111 @@
 
 Base URL: `/api/users`
 
-**Authentication Required:** Ya  
-**Role Required:** USER (untuk read), ADMIN (untuk create/update/delete)
+Authentication: Protected (JWT + PermissionGuard)
 
-Semua respons sukses mengikuti pola:
+Permission module: `users`  
+Actions: `read`, `create`, `update`, `manage`
 
+Proteksi & Error:
+- Guard: JwtAuthGuard + PermissionGuard (lihat `permission.decorator.ts` dan `permission.guard.ts`)
+- Error seragam oleh AllExceptionFilter:
+  {
+    "message": string,
+    "success": false,
+    "data": null,
+    "path": string,
+    "timestamp": string
+  }
+
+Implementasi:
+- Controller: [`users.controller.ts`](../../src/users/users.controller.ts)
+- Service: [`users.service.ts`](../../src/users/users.service.ts)
+- Module: [`users.module.ts`](../../src/users/users.module.ts)
+- Entity: [`User`](../../src/entities/users.entity.ts), relasi ke [`Role`](../../src/entities/roles.entity.ts)
+
+Audit:
+- CREATE/UPDATE/DELETE umumnya dicatat via AuditLogsService (action: CREATE, UPDATE, DELETE)
+
+---
+
+## Entity Structure
+
+```ts
+type User = {
+  id: number;
+  name: string;                  // max 150
+  email: string;                 // unique, max 150
+  // password tidak ditampilkan di response API
+  role?: { id: number; name: string } | null;
+
+  created_at: string;            // ISO datetime
+  created_by?: number | null;
+  updated_at?: string | null;
+  updated_by?: number | null;
+  deleted_at?: string | null;    // soft delete
+  deleted_by?: number | null;
+};
+```
+
+Catatan:
+- Penyimpanan password di DB menggunakan field `password_hash`. Input API menggunakan `password` (akan di-hash).
+- Relasi `role` bersifat optional (SET NULL saat role dihapus).
+
+---
+
+## Endpoints
+
+### 1) GET /api/users/list
+
+Daftar users (pagination + search).
+
+Access: JWT (+ permission `users:read`)
+
+Query:
+- page (number, default: 1)
+- limit (number, default: 10)
+- search (string, optional) — cari pada name/email (case-insensitive)
+
+Response 200:
 ```json
 {
-  "message": "string",
+  "message": "Daftar user berhasil diambil",
   "success": true,
-  "data": {}
-}
-```
-
-Respons error (global exception filter):
-
-```json
-{
-  "message": "string",
-  "success": false,
-  "data": null,
-  "path": "string",
-  "timestamp": "string"
-}
-```
-
-Entity user yang diekspos (sanitasi, tanpa password hash):
-
-```json
-{
-  "id": "number",
-  "name": "string",
-  "email": "string",
-  "role": {
-    "id": "number",
-    "name": "string",
-    "description": "string | null"
-  },
-  "createdAt": "string (ISO datetime)",
-  "updatedAt": "string | null"
+  "meta": { "page": 1, "total": 25, "last_page": 3 },
+  "data": [
+    {
+      "id": 5,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role": { "id": 2, "name": "user" },
+      "created_at": "2025-01-15T10:00:00.000Z",
+      "updated_at": "2025-01-20T12:00:00.000Z"
+    }
+  ]
 }
 ```
 
 ---
 
-### 1. GET /api/users
+### 2) GET /api/users
 
-Ambil semua user.
+Semua users (tanpa pagination).
 
-**Role Required:** USER
+Access: JWT (+ permission `users:read`)
 
-**Contoh Request:**
-
-```bash
-GET /api/users
-Authorization: Bearer <token>
-```
-
-**Response 200:**
-
+Response 200:
 ```json
 {
-  "message": "Berhasil mendapatkan semua user",
+  "message": "Daftar user berhasil diambil",
   "success": true,
   "data": [
     {
       "id": 1,
-      "name": "Admin",
+      "name": "Admin User",
       "email": "admin@jdih.com",
-      "role": { "id": 1, "name": "admin", "description": "Administrator" },
-      "createdAt": "2025-09-30T07:13:02.000Z",
-      "updatedAt": null
+      "role": { "id": 1, "name": "admin" },
+      "created_at": "2025-01-01T00:00:00.000Z",
+      "updated_at": "2025-01-01T00:00:00.000Z"
     }
   ]
 }
@@ -80,305 +114,335 @@ Authorization: Bearer <token>
 
 ---
 
-### 2. GET /api/users/:id
+### 3) GET /api/users/:id
 
-Ambil detail user berdasarkan ID.
+Detail user berdasarkan ID.
 
-**Contoh Request:**
+Access: JWT (+ permission `users:read`)
 
-```bash
-GET /api/users/1
-Authorization: Bearer <token>
-```
-
-**Response 200:**
-
+Response 200:
 ```json
 {
-  "message": "Berhasil mendapatkan user id 1",
+  "message": "User berhasil ditemukan",
   "success": true,
   "data": {
-    "id": 1,
-    "name": "Admin",
-    "email": "admin@jdih.com",
-    "role": { "id": 1, "name": "admin", "description": "Administrator" },
-    "createdAt": "2025-09-30T07:13:02.000Z",
-    "updatedAt": null
+    "id": 5,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": { "id": 2, "name": "user" },
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "updated_at": "2025-01-20T12:00:00.000Z",
+    "deleted_at": null
   }
 }
 ```
 
-**Error 404:**
-
+Error 404:
 ```json
 {
-  "message": "User dengan id 999 tidak ditemukan",
+  "message": "User tidak ditemukan",
   "success": false,
   "data": null,
   "path": "/api/users/999",
-  "timestamp": "2025-10-03T09:30:00.000Z"
+  "timestamp": "2025-10-29T12:00:00.000Z"
 }
 ```
 
 ---
 
-### 3. POST /api/users
+### 4) POST /api/users
 
-Buat user baru.
+Membuat user baru.
 
-**Request Body:**
+Access: JWT (+ permission `users:create`)
 
-```json
-{
-  "name": "string (3-30 karakter)",
-  "email": "string (email valid, max 150)",
-  "password": "string (8-100 karakter)",
-  "roleId": "number (optional)"
-}
+Headers:
 ```
-
-**Contoh Request:**
-
-```bash
-POST /api/users
-Authorization: Bearer <token>
+Authorization: Bearer <access_token>
 Content-Type: application/json
+```
 
+Request Body:
+```json
 {
-  "name": "Operator",
-  "email": "operator@jdih.com",
-  "password": "Rahasia123",
-  "roleId": 1
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "Password123!",
+  "role_id": 2
 }
 ```
 
-**Response 201:**
+Validasi ringkas:
+- name: required, string, max 150
+- email: required, valid email, unique, max 150 (di-normalize trim + lowercase)
+- password: required, min 8 (akan di-hash)
+- role_id: required, number (harus role yang valid)
 
+Response 201:
 ```json
 {
-  "message": "Berhasil membuat user baru",
+  "message": "User berhasil dibuat",
   "success": true,
   "data": {
-    "id": 12,
-    "name": "Operator",
-    "email": "operator@jdih.com",
-    "role": { "id": 1, "name": "admin", "description": "Administrator" },
-    "createdAt": "2025-10-03T09:35:00.000Z",
-    "updatedAt": null
+    "id": 10,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": { "id": 2, "name": "user" },
+    "created_at": "2025-10-29T12:10:00.000Z"
   }
 }
 ```
 
-**Error 404 (Role tidak ditemukan):**
-
+Error 409 (email duplikat):
 ```json
 {
-  "message": "Role dengan id 99 tidak ditemukan",
+  "message": "Email sudah terdaftar",
   "success": false,
   "data": null,
   "path": "/api/users",
-  "timestamp": "2025-10-03T09:35:00.000Z"
+  "timestamp": "2025-10-29T12:10:00.000Z"
 }
 ```
 
-**Error 400 (Validasi):**
-
+Error 404 (role tidak ditemukan):
 ```json
 {
-  "message": "Username minimal 3 karakter",
+  "message": "Role tidak ditemukan",
   "success": false,
   "data": null,
   "path": "/api/users",
-  "timestamp": "2025-10-03T09:35:00.000Z"
+  "timestamp": "2025-10-29T12:10:00.000Z"
 }
 ```
 
 ---
 
-### 4. PUT /api/users/:id
+### 5) PATCH /api/users/:id
 
-Update sebagian/seluruh field user.
+Update data user (parsial).
 
-**Request Body:** (semua field optional)
+Access: JWT (+ permission `users:update`)
 
+Request Body (opsional):
 ```json
 {
-  "name": "string",
-  "email": "string",
-  "password": "string",
-  "roleId": "number"
+  "name": "John Updated",
+  "email": "john.updated@example.com",
+  "password": "NewPassword123!",
+  "role_id": 3
 }
 ```
 
-**Contoh Request:**
+Perilaku:
+- Password, jika dikirim, akan di-hash.
+- Email, jika diubah, dicek duplikasi (kecuali milik user sendiri).
 
-```bash
-PUT /api/users/1
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "name": "Administrator Utama",
-  "password": "PasswordBaru999"
-}
-```
-
-**Response 200:**
-
+Response 200:
 ```json
 {
-  "message": "Berhasil mengupdate user id 1",
+  "message": "User berhasil diupdate",
   "success": true,
   "data": {
-    "id": 1,
-    "name": "Administrator Utama",
-    "email": "admin@jdih.com",
-    "role": { "id": 1, "name": "admin", "description": "Administrator" },
-    "createdAt": "2025-09-30T07:13:02.000Z",
-    "updatedAt": "2025-10-03T09:40:11.000Z"
+    "id": 10,
+    "name": "John Updated",
+    "email": "john.updated@example.com",
+    "role": { "id": 3, "name": "verifikator" },
+    "updated_at": "2025-10-29T12:20:00.000Z",
+    "updated_by": 1
   }
 }
 ```
 
-**Error 404:**
-
+Error 404 (user/role):
 ```json
 {
-  "message": "User dengan id 999 tidak ditemukan",
+  "message": "User atau Role tidak ditemukan",
+  "success": false,
+  "data": null,
+  "path": "/api/users/10",
+  "timestamp": "2025-10-29T12:20:00.000Z"
+}
+```
+
+Error 409 (email digunakan user lain):
+```json
+{
+  "message": "Email sudah terdaftar",
+  "success": false,
+  "data": null,
+  "path": "/api/users/10",
+  "timestamp": "2025-10-29T12:20:00.000Z"
+}
+```
+
+---
+
+### 6) DELETE /api/users/:id
+
+Soft delete user.
+
+Access: JWT (+ permission `users:manage`)
+
+Response 200:
+```json
+{
+  "message": "User berhasil dihapus",
+  "success": true,
+  "data": {
+    "id": 10,
+    "deleted_at": "2025-10-29T12:30:00.000Z",
+    "deleted_by": 1
+  }
+}
+```
+
+Error 404:
+```json
+{
+  "message": "User tidak ditemukan",
   "success": false,
   "data": null,
   "path": "/api/users/999",
-  "timestamp": "2025-10-03T09:40:11.000Z"
+  "timestamp": "2025-10-29T12:30:00.000Z"
 }
 ```
 
 ---
 
-### 5. DELETE /api/users/:id
+### 7) GET /api/users/deleted/list
 
-Soft delete user berdasarkan ID.
+Daftar user yang dihapus (soft-deleted).
 
-**Contoh Request:**
+Access: JWT (+ permission `users:manage`)
 
-```bash
-DELETE /api/users/3
-Authorization: Bearer <token>
-```
-
-**Response 200:**
-
+Response 200:
 ```json
 {
-  "message": "Berhasil menandai user id 3 sebagai terhapus",
-  "success": true,
-  "data": {
-    "name": "Operator",
-    "email": "operator@jdih.com"
-  }
-}
-```
-
-**Error 400 (Sudah terhapus):**
-
-```json
-{
-  "message": "User id 3 sudah terhapus",
-  "success": false,
-  "data": null,
-  "path": "/api/users/3",
-  "timestamp": "2025-10-03T10:00:01.000Z"
-}
-```
-
----
-
-### 6. GET /api/users/deleted/list
-
-Mengambil daftar user yang sudah di-soft delete.
-
-**Contoh Request:**
-
-```bash
-GET /api/users/deleted/list
-Authorization: Bearer <token>
-```
-
-**Response 200:**
-
-```json
-{
-  "message": "Berhasil mendapatkan user terhapus",
+  "message": "Berhasil mendapatkan semua user yang dihapus",
   "success": true,
   "data": [
-    {
-      "id": 3,
-      "name": "Operator",
-      "email": "operator@jdih.com",
-      "deletedAt": "2025-10-03T10:00:01.000Z"
-    }
+    { "id": 8, "name": "Old User", "email": "old@example.com", "deleted_at": "2025-10-20T10:00:00.000Z" }
   ]
 }
 ```
 
 ---
 
-### 7. PATCH /api/users/:id/restore
+### 8) PATCH /api/users/restore/:id
 
-Merestore user yang telah di-soft delete.
+Restore user yang dihapus.
 
-**Contoh Request:**
+Access: JWT (+ permission `users:manage`)
 
-```bash
-PATCH /api/users/3/restore
-Authorization: Bearer <token>
-```
-
-**Response 200:**
-
+Response 200:
 ```json
 {
-  "message": "Berhasil merestore user id 3",
+  "message": "User berhasil dikembalikan",
   "success": true,
-  "data": {
-    "id": 3,
-    "name": "Operator",
-    "email": "operator@jdih.com",
-    "role": { "id": 1, "name": "admin", "description": "Administrator" },
-    "createdAt": "2025-10-01T07:13:02.000Z",
-    "updatedAt": "2025-10-03T10:02:11.000Z"
-  }
+  "data": { "id": 8, "deleted_at": null }
 }
 ```
 
-**Error 404:**
-
+Error 404:
 ```json
 {
-  "message": "User dengan id 999 tidak ditemukan",
+  "message": "User tidak ditemukan atau belum dihapus",
   "success": false,
   "data": null,
-  "path": "/api/users/999/restore",
-  "timestamp": "2025-10-03T10:02:11.000Z"
-}
-```
-
-**Error 400 (Belum terhapus):**
-
-```json
-{
-  "message": "User id 3 tidak dalam status terhapus",
-  "success": false,
-  "data": null,
-  "path": "/api/users/3/restore",
-  "timestamp": "2025-10-03T10:02:11.000Z"
+  "path": "/api/users/restore/8",
+  "timestamp": "2025-10-29T12:40:00.000Z"
 }
 ```
 
 ---
 
-## Role Management
+## Error Responses (Umum)
 
-- **admin** (id: 1): Full access
-- **user** (id: 2): Limited access
+401 Unauthorized:
+```json
+{
+  "message": "Unauthorized",
+  "success": false,
+  "data": null,
+  "path": "/api/users",
+  "timestamp": "2025-10-29T10:00:00.000Z"
+}
+```
 
-Password di-hash menggunakan bcrypt sebelum disimpan ke database.
+403 Forbidden (tanpa permission):
+```json
+{
+  "message": "Forbidden resource",
+  "success": false,
+  "data": null,
+  "path": "/api/users",
+  "timestamp": "2025-10-29T10:00:00.000Z"
+}
+```
+
+404 Not Found:
+```json
+{
+  "message": "User tidak ditemukan",
+  "success": false,
+  "data": null,
+  "path": "/api/users/{id}",
+  "timestamp": "2025-10-29T12:00:00.000Z"
+}
+```
+
+---
+
+## cURL Examples
+
+List (pagination + search):
+```bash
+curl "http://localhost:3000/api/users/list?page=1&limit=10&search=john" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+All:
+```bash
+curl "http://localhost:3000/api/users" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+Detail:
+```bash
+curl "http://localhost:3000/api/users/10" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+Create:
+```bash
+curl -X POST "http://localhost:3000/api/users" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com","password":"Password123!","role_id":2}'
+```
+
+Update:
+```bash
+curl -X PATCH "http://localhost:3000/api/users/10" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"john.updated@example.com","password":"NewPassword123!"}'
+```
+
+Delete:
+```bash
+curl -X DELETE "http://localhost:3000/api/users/10" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+Deleted list:
+```bash
+curl "http://localhost:3000/api/users/deleted/list" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+Restore:
+```bash
+curl -X PATCH "http://localhost:3000/api/users/restore/8" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
