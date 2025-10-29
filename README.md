@@ -179,8 +179,7 @@ Kontak: miftachulhd5@gmail.com
 ```
 
 ## 📜 Lisensi
-Proyek ini dikembangkan untuk keperluan portofolio pribadi dan tidak untuk tujuan komersial.
-© 2025 — Developed by Miftachul Huda
+Proyek ini dikembangkan untuk sebuah project © 2025 — Developed by Miftachul Huda
 
 
 
