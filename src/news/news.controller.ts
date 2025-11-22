@@ -34,8 +34,15 @@ export class NewsController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('search') search?: string,
+    @Query('published') published?: string,
   ) {
-    const data = await this.newsService.getAllNewsPaginationService(page, limit, search);
+    const publishedBool = published === 'true' ? true : published === 'false' ? false : undefined;
+    const data = await this.newsService.getAllNewsPaginationService(
+      page,
+      limit,
+      search,
+      publishedBool,
+    );
 
     return data;
   }
@@ -56,8 +63,10 @@ export class NewsController {
   // get all published news
   @Get('published/list')
   @Public()
-  async getAllPublishedNewsController() {
-    const data = await this.newsService.getAllPublishedNewsService();
+  async getAllPublishedNewsController(
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
+  ) {
+    const data = await this.newsService.getAllPublishedNewsService(limit);
 
     return {
       message: 'Berhasil mengambil daftar berita terbit',
