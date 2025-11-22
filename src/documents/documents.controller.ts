@@ -13,6 +13,8 @@ import {
   Query,
   UseGuards,
   BadRequestException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import type { AuthUser } from 'src/auth/auth-user.interface';
 import { DocumentsService } from './documents.service';
@@ -23,11 +25,18 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Permission } from 'src/auth/decorators/permission.decorator';
 import { PermissionGuard } from 'src/auth/guards/permission.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('documents')
 @UseGuards(JwtAuthGuard, PermissionGuard)
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(
+    private readonly documentsService: DocumentsService,
+    private readonly configService: ConfigService,
+  ) {}
 
   // get all documents with pagination and filters
   @Get('list')
@@ -64,6 +73,71 @@ export class DocumentsController {
     };
   }
 
+  // get published document by id
+  @Get('publish/:id')
+  @Public()
+  async getPublishedDocumentByIdController(@Param('id', ParseIntPipe) id: number) {
+    const doc = await this.documentsService.getPublishedDocumentByIdService(id);
+
+    return {
+      message: `Berhasil mendapatkan dokumen dengan id ${id}`,
+      success: true,
+      data: doc,
+    };
+  }
+
+  // get statistik tahunan
+  @Get('statistics/yearly')
+  @Public()
+  async getYearlyStatisticsController() {
+    const stats = await this.documentsService.getYearlyStatsService();
+
+    return {
+      message: 'Berhasil mendapatkan statistik dokumen tahunan',
+      success: true,
+      data: stats,
+    };
+  }
+
+  // get statistik bulanan per tahun
+  @Get('statistics/monthly')
+  @Public()
+  async getMonthlyStatisticsController(@Query('year', ParseIntPipe) year: number) {
+    const stats = await this.documentsService.getMonthlyStatsByYearService(year);
+
+    return {
+      message: `Berhasil mendapatkan statistik dokumen bulanan untuk tahun ${year}`,
+      success: true,
+      data: stats,
+    };
+  }
+
+  // get statistik berdasarkan tipe dokumen
+  @Get('statistics/type')
+  @Public()
+  async getDocumentTypeStatisticsController() {
+    const stats = await this.documentsService.getTypeStatsService();
+
+    return {
+      message: 'Berhasil mendapatkan statistik dokumen berdasarkan tipe dokumen',
+      success: true,
+      data: stats,
+    };
+  }
+
+  // get statistik berdasarkan status dokumen
+  @Get('statistics/status')
+  @Public()
+  async getDocumentStatusStatisticsController() {
+    const stats = await this.documentsService.getStatusStatsService();
+
+    return {
+      message: 'Berhasil mendapatkan statistik dokumen berdasarkan status dokumen',
+      success: true,
+      data: stats,
+    };
+  }
+
   // create document
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -76,6 +150,43 @@ export class DocumentsController {
 
     return {
       message: 'Berhasil membuat dokumen baru',
+      success: true,
+      data: doc,
+    };
+  }
+
+  // upload document
+  @Post('upload')
+  @Permission('dokumen', 'create')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: join(__dirname, '..', '..', process.env.UPLOADS_PATH || 'uploads'),
+        filename: (req, file, cb) => {
+          const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueName + extname(file.originalname));
+        },
+      }),
+    }),
+  )
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: CreateDocumentDto,
+    @CurrentUser('id') userId: number,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File harus disertakan');
+    }
+
+    const fileUrl = `/uploads/${file.filename}`;
+
+    const doc = await this.documentsService.createDocumentService(
+      { ...body, file_url: fileUrl },
+      userId,
+    );
+
+    return {
+      message: 'Berhasil mengunggah dan membuat dokumen baru',
       success: true,
       data: doc,
     };
