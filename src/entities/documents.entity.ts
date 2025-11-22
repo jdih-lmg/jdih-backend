@@ -59,16 +59,16 @@ export class Document {
   signed_by?: string | null;
 
   @Column({ name: 'date_signed', type: 'date', nullable: true })
-  dateSigned?: Date | null;
+  date_signed?: Date | null;
 
   @Column({ name: 'effective_date', type: 'date', nullable: true })
-  effectiveDate?: Date | null;
+  effective_date?: Date | null;
 
   @Column({ name: 'file_url', type: 'varchar', length: 255, nullable: true })
-  fileUrl?: string | null;
+  file_url?: string | null;
 
   @Column({ name: 'verification_date', type: 'datetime', nullable: true })
-  verificationDate?: Date | null;
+  verification_date?: Date | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'verified_by' })
