@@ -49,10 +49,10 @@ export class DocumentsService {
       : null,
     publisher: doc.publisher,
     signed_by: doc.signed_by,
-    date_signed: doc.dateSigned,
-    effective_date: doc.effectiveDate,
-    verification_date: doc.verificationDate,
-    file_url: doc.fileUrl,
+    date_signed: doc.date_signed,
+    effective_date: doc.effective_date,
+    verification_date: doc.verification_date,
+    file_url: doc.file_url,
     verified_by: doc.verified_by
       ? {
           id: doc.verified_by.id,
@@ -67,22 +67,45 @@ export class DocumentsService {
 
   // get all documents with pagination and filters
   async getAllDocumentsPaginationService(query: DocumentQueryDto) {
-    const { page, limit, title, status, year, category_id } = this.validation.validate(
-      documentQuerySchema,
-      query,
-    );
+    const { page, limit, title, number, status, year, category_id, search } =
+      this.validation.validate(documentQuerySchema, query);
 
-    const where: FindOptionsWhere<Document> = {
+    const baseWhere: FindOptionsWhere<Document> = {
       deleted_at: IsNull(),
     };
 
-    if (title) where.title = ILike(`%${title}%`);
+    if (title) {
+      baseWhere.title = ILike(`%${title}%`);
+    }
 
-    if (status) where.status = status;
+    if (number) {
+      baseWhere.number = ILike(`%${number}%`);
+    }
 
-    if (year) where.year = year;
+    if (status) {
+      baseWhere.status = status;
+    }
 
-    if (category_id) where.category = { id: category_id } as FindOptionsWhere<DocumentCategory>;
+    if (year) {
+      baseWhere.year = year;
+    }
+
+    if (category_id) {
+      baseWhere.category = { id: category_id } as FindOptionsWhere<DocumentCategory>;
+    }
+
+    // FULLTEXT SEARCH (OR di banyak field)
+    let where: FindOptionsWhere<Document>[] | FindOptionsWhere<Document> = baseWhere;
+
+    if (search && search.trim() !== '') {
+      const s = ILike(`%${search}%`);
+
+      where = [
+        { ...baseWhere, title: s },
+        { ...baseWhere, number: s },
+        { ...baseWhere, category: { name: s } as FindOptionsWhere<DocumentCategory> },
+      ];
+    }
 
     const [data, total] = await this.documentRepo.findAndCount({
       where,
@@ -92,7 +115,6 @@ export class DocumentsService {
       take: limit,
     });
 
-    // mapping response data
     const mappedData = data.map(this.mapDocumentResponse);
 
     return {
@@ -129,6 +151,75 @@ export class DocumentsService {
     const mapped = this.mapDocumentResponse(doc);
 
     return mapped as unknown as Document;
+  }
+
+  // get document by id published
+  async getPublishedDocumentByIdService(id: number): Promise<Document> {
+    const doc = await this.documentRepo.findOne({
+      where: { id, status: 'published' },
+      relations: ['category', 'verified_by', 'versions'],
+    });
+
+    if (!doc) throw new NotFoundException(`Document dengan id ${id} tidak ditemukan`);
+
+    const mapped = this.mapDocumentResponse(doc);
+
+    return mapped as unknown as Document;
+  }
+
+  // get documents statistik tahunan
+  async getYearlyStatsService(): Promise<{ year: number; count: number }[]> {
+    return this.documentRepo.query(`
+      SELECT 
+        year,
+        COUNT(*) AS count
+      FROM documents
+      WHERE deleted_at IS NULL
+      GROUP BY year
+      ORDER BY year ASC
+    `);
+  }
+
+  // get statistik bulanan per tahun
+  async getMonthlyStatsByYearService(year: number): Promise<{ month: number; count: number }[]> {
+    return this.documentRepo.query(
+      `
+      SELECT
+        MONTH(created_at) AS month,
+        COUNT(*) AS count
+      FROM documents
+      WHERE deleted_at IS NULL
+        AND year = ?
+      GROUP BY month
+      ORDER BY month ASC
+    `,
+      [year],
+    );
+  }
+
+  // get statistik jenis dokumen (type)
+  async getTypeStatsService(): Promise<{ type: string; count: number }[]> {
+    return this.documentRepo.query(`
+      SELECT
+        type,
+        COUNT(*) AS count
+      FROM documents
+      WHERE deleted_at IS NULL
+      GROUP BY type
+      ORDER BY count DESC
+    `);
+  }
+
+  // get statistik status dokumen
+  async getStatusStatsService(): Promise<{ status: string; count: number }[]> {
+    return this.documentRepo.query(`
+      SELECT
+        status,
+        COUNT(*) AS count
+      FROM documents
+      WHERE deleted_at IS NULL
+      GROUP BY status
+    `);
   }
 
   // create document
@@ -311,14 +402,14 @@ export class DocumentsService {
     doc.status = newStatus;
 
     if (newStatus === 'verified') {
-      doc.verificationDate = new Date();
+      doc.verification_date = new Date();
       doc.updated_at = new Date();
       doc.updated_by = user.id || null;
       doc.verified_by = user.id ? await this.userRepo.findOne({ where: { id: user.id } }) : null;
     }
 
     if (newStatus === 'published') {
-      doc.effectiveDate = new Date();
+      doc.effective_date = new Date();
       doc.updated_at = new Date();
       doc.updated_by = user.id || null;
     }
