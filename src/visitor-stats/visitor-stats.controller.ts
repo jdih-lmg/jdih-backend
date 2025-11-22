@@ -36,10 +36,14 @@ export class VisitorStatsController {
     ]);
 
     return {
-      today,
-      month,
-      year,
-      total,
+      message: 'Statistik kunjungan berhasil diambil',
+      success: true,
+      data: {
+        today,
+        month,
+        year,
+        total,
+      },
     };
   }
 
@@ -53,6 +57,7 @@ export class VisitorStatsController {
     ]);
 
     return {
+      message: 'Data grafik kunjungan berhasil diambil',
       success: true,
       data: {
         daily,
