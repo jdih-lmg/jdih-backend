@@ -47,11 +47,22 @@ export class NewsService {
   }
 
   // get all news pagination and search
-  async getAllNewsPaginationService(page: number, limit: number, search?: string) {
+  async getAllNewsPaginationService(
+    page: number,
+    limit: number,
+    search?: string,
+    published?: boolean,
+  ) {
     const skip = (page - 1) * limit;
-    const where = search
-      ? [{ title: ILike(`%${search}%`) }, { content: ILike(`%${search}%`) }]
-      : {};
+    const where: { title?: any; isPublished?: boolean } = {};
+
+    if (search) {
+      where.title = ILike(`%${search}%`);
+    }
+
+    if (published !== undefined) {
+      where.isPublished = published;
+    }
 
     const [data, total] = await this.newsRepo.findAndCount({
       where,
@@ -85,12 +96,13 @@ export class NewsService {
     return this.formatNewsResponse(news) as unknown as News;
   }
 
-  // get all published news
-  async getAllPublishedNewsService(): Promise<News[]> {
+  // get all published news with limit data
+  async getAllPublishedNewsService(limit?: number): Promise<News[]> {
     const news = await this.newsRepo.find({
-      where: { isPublished: true, deletedAt: IsNull() },
+      where: { isPublished: true },
       relations: ['author', 'categories'],
-      order: { publishedAt: 'DESC' },
+      order: { createdAt: 'DESC' },
+      take: limit,
     });
 
     return news.map((n) => this.formatNewsResponse(n) as unknown as News);
