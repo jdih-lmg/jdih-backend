@@ -68,7 +68,7 @@ export class VisitorStatsService {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.visitorStatRepo.query(
       `SELECT DATE(visited_at) as date, COUNT(*) as visits
-         FROM visitor_stat
+         FROM visitor_stats
          WHERE visited_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
          GROUP BY DATE(visited_at)
          ORDER BY DATE(visited_at) ASC`,
