@@ -1,4 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
@@ -47,6 +49,10 @@ import { VisitorLoggerMiddleware } from './visitor-stats/visitor-logger.middlewa
         AuditLog,
       ],
       autoLoadEntities: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', process.env.UPLOADS_PATH || 'uploads'),
+      serveRoot: '/uploads',
     }),
     CommonModule.forRoot(),
     HealthModule,
