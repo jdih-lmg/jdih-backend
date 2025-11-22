@@ -71,7 +71,7 @@ export class AuthService {
     });
 
     await this.userRepo.save(user);
-    const token = await this.signToken(user.id, user.email, user.role);
+    const token = await this.signToken(user.id, user.name, user.email, user.role);
 
     return {
       message: 'Registrasi berhasil',
@@ -99,7 +99,7 @@ export class AuthService {
       throw new UnauthorizedException('Email atau password salah');
     }
 
-    const token = await this.signToken(user.id, user.email, user.role);
+    const token = await this.signToken(user.id, user.name, user.email, user.role);
 
     await this.auditLogsService.logAction(
       { id: user.id },
@@ -128,9 +128,16 @@ export class AuthService {
     };
   }
 
-  private async signToken(userId: number, email: string, role?: Role): Promise<string> {
+  private async signToken(
+    userId: number,
+    name: string,
+    email: string,
+    role?: Role,
+  ): Promise<string> {
     const payload = {
       sub: userId,
+      id: userId,
+      name,
       email,
       role: role ? { id: role.id, name: role.name } : undefined,
     };
